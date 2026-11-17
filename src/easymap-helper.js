@@ -11,7 +11,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '1.1';
+  var VERSION = '1.2';
   var PANEL_ID = 'emh-panel';
   var TOL_M = 0.10;   // 點到地界在 10 公分內視為「碰到」
   var WARN_M = 0.02;  // 超過 2 公分就提醒目視確認
@@ -384,7 +384,10 @@
     box.id = PANEL_ID;
 
     var head = el('div', 'display:flex;align-items:center;margin-bottom:6px;');
-    head.appendChild(el('b', 'flex:1;font-size:17px;color:#c85a1e;', '鑑界點位小幫手'));
+    head.appendChild(el('b', 'font-size:17px;color:#c85a1e;', '鑑界點位小幫手'));
+    var ver = el('span', 'flex:1;margin-left:8px;font-size:13px;color:#888;', 'v' + VERSION);
+    ver.id = 'emh-ver';
+    head.appendChild(ver);
     var x = el('button', 'border:0;background:none;font-size:20px;cursor:pointer;line-height:1;', '×');
     x.type = 'button'; x.title = '關閉'; x.onclick = function () { box.remove(); };
     head.appendChild(x);

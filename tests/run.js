@@ -36,6 +36,7 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
     assert.ok(href.startsWith('javascript:'));
     await page.evaluate(decodeURIComponent(href.slice('javascript:'.length)));
     assert.equal(await page.inputValue('#emh-lands'), '10');
+    assert.match(await page.textContent('#emh-ver'), /^v\d+\.\d+$/);
     assert.match(await page.textContent('#emh-panel'), /共 6 個界址點，目前勾選 0 個/);
   });
   await ok('勾選點號並重新計算', async () => {
