@@ -317,7 +317,7 @@
     var st = document.getElementById('emh-print-css');
     if (!st) {
       st = el('style'); st.id = 'emh-print-css';
-      st.textContent = '@media print{body>*:not(#emh-print){display:none!important}#emh-print{position:static!important;padding:0!important}' +
+      st.textContent = '@media print{body>*:not(#emh-print){display:none!important}#emh-print{position:static!important;padding:0!important;min-height:0!important}' +
         '.emh-noprint{display:none!important}}@page{size:A4 portrait;margin:12mm}' +
         '#emh-print table{border-collapse:collapse;width:100%;margin:4px 0 10px}#emh-print th,#emh-print td{border:1px solid #333;padding:1px 8px;text-align:left;vertical-align:top;font-size:14px;line-height:1.45}' +
         '#emh-print th{background:#eee;white-space:nowrap}#emh-print h2{font-size:17px;margin:10px 0 2px}#emh-print tr{break-inside:avoid}';
@@ -345,7 +345,7 @@
     }
     h.push(fig.svg);
     h.push('<div style="font-size:12.5px;margin:3px 0 6px">圖例：<span style="color:#d00">●</span> 鑑界點（粗字）　○ 未選的界址點（灰字）　' +
-      '<span style="background:#fff3a0;border:1px solid #000">　</span> 申請地　<span style="background:#eef3fb;border:1px solid #667">　</span> 鄰地　點號以引線拉開，位置以圓點為準。</div>');
+      '<span style="background:#fff3a0;border:1px solid #000">　</span> 申請地　<span style="background:#eef3fb;border:1px solid #667">　</span> 鄰地　點號以引線拉開，位置以圓點為準。<br>本圖說依內政部土地複丈規費服務網頁之圖資自動產生，僅供核對與通知作業參考，實際位置以現場土地複丈為準。</div>');
     h.push('<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1"><h2>鄰地清冊</h2><table><tr><th>鄰地地號</th><th>碰到的鑑界點</th></tr>');
     last.r.lands.forEach(function (l) { h.push('<tr><td><b>' + esc(l) + '</b></td><td>' + esc(last.r.byLand[l].slice().sort(numCompare).join('、')) + '</td></tr>'); });
     if (!last.r.lands.length) h.push('<tr><td colspan="2">（無）</td></tr>');
@@ -354,7 +354,7 @@
       h.push('<tr><td><b>' + esc(pp.no) + '</b></td><td>' + esc(pp.lands.slice().sort(landCompare).join('、') || '—') + '</td></tr>');
     });
     h.push('</table></div></div>');
-    h.push('<div style="font-size:12px;color:#444;border-top:1px solid #999;padding-top:3px">本圖說依內政部土地複丈規費服務網頁之圖資自動產生，僅供核對與通知作業參考，實際位置以現場土地複丈為準。</div></div>');
+    h.push('</div>');
 
     var box = el('div', 'position:absolute;left:0;top:0;width:100%;min-height:100%;box-sizing:border-box;z-index:100000;background:#fff;color:#000;padding:16px;font:15px/1.5 "Microsoft JhengHei",sans-serif;');
     box.id = 'emh-print';
