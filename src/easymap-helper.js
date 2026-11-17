@@ -11,7 +11,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '1.0';
+  var VERSION = '1.1';
   var PANEL_ID = 'emh-panel';
   var TOL_M = 0.10;   // 點到地界在 10 公分內視為「碰到」
   var WARN_M = 0.02;  // 超過 2 公分就提醒目視確認
@@ -176,6 +176,196 @@
     return list.length;
   }
 
+  // ---------- 列印圖說 ----------
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  function inRings(p, rs) {
+    var c = false;
+    rs.forEach(function (r) {
+      for (var i = 0, j = r.length - 1; i < r.length; j = i++) {
+        var a = r[i], b = r[j];
+        if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c;
+      }
+    });
+    return c;
+  }
+  function distRings(p, rs) { var d = Infinity; rs.forEach(function (r) { var x = distToRing(p, r); if (x < d) d = x; }); return d; }
+  function boxHit(a, b, g) { g = g || 0; return a.x < b.x + b.w + g && b.x < a.x + a.w + g && a.y < b.y + b.h + g && b.y < a.y + a.h + g; }
+  function segHit(a, b, c, d) {
+    function o(p, q, r) { return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]); }
+    return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+  }
+  function numCompare(a, b) {
+    var x = parseInt(a, 10), y = parseInt(b, 10);
+    if (!isNaN(x) && !isNaN(y) && x !== y) return x - y;
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+
+  /* 畫出申請地、鄰地與界址點；點號用引線拉開，互不重疊。
+   * 回傳 { svg, labels:[{no,x,y,w,h}] }（labels 供測試檢查不重疊） */
+  function drawFigure(pg, checked, apps, neighborSet) {
+    var W = 1000, xs = [], ys = [];
+    pg.parcels.forEach(function (pc) {
+      if (!apps[normLand(pc.no)]) return;
+      pc.rings.forEach(function (r) { r.forEach(function (c) { xs.push(c[0]); ys.push(c[1]); }); });
+    });
+    pg.points.forEach(function (pt) { if (checked[pt.key] || !xs.length) { xs.push(pt.xy[0]); ys.push(pt.xy[1]); } });
+    var minx = Math.min.apply(null, xs), maxx = Math.max.apply(null, xs);
+    var miny = Math.min.apply(null, ys), maxy = Math.max.apply(null, ys);
+    var pad = 0.3 * Math.max(maxx - minx, maxy - miny, 1);
+    minx -= pad; maxx += pad; miny -= pad; maxy += pad;
+    var w = maxx - minx, h = maxy - miny, e;
+    if (h / w < 0.6) { e = (0.6 * w - h) / 2; miny -= e; maxy += e; h = maxy - miny; }
+    if (h / w > 0.68) { e = (h / 0.68 - w) / 2; minx -= e; maxx += e; w = maxx - minx; }
+    var s = W / w, H = Math.round(h * s);
+    function T(c) { return [(c[0] - minx) * s, (maxy - c[1]) * s]; }
+    function f1(n) { return Math.round(n * 10) / 10; }
+
+    var parcels = pg.parcels.map(function (pc) {
+      return { no: pc.no, mine: !!apps[normLand(pc.no)], nb: !!neighborSet[pc.no], rings: pc.rings.map(function (r) { return r.map(T); }) };
+    });
+    var pts = pg.points.map(function (pt) { return { no: pt.no, on: !!checked[pt.key], p: T(pt.xy) }; })
+      .filter(function (q) { return q.p[0] > 0 && q.p[0] < W && q.p[1] > 0 && q.p[1] < H; });
+
+    // 點號位置：以勾選點的中心向外放，避開其他點號、點位與引線
+    var cx = 0, cy = 0, on = pts.filter(function (q) { return q.on; });
+    (on.length ? on : pts).forEach(function (q) { cx += q.p[0]; cy += q.p[1]; });
+    cx /= (on.length || pts.length || 1); cy /= (on.length || pts.length || 1);
+    pts.forEach(function (q) { q.ang = Math.atan2(q.p[1] - cy, q.p[0] - cx); });
+    pts.sort(function (a, b) { return (b.on - a.on) || (a.ang - b.ang); });
+    var R = 8, boxes = [], leaders = [];
+    var marks = pts.map(function (q) { return { x: q.p[0] - R, y: q.p[1] - R, w: 2 * R, h: 2 * R, q: q }; });
+    pts.forEach(function (q) {
+      var fs = q.on ? 26 : 17, bw = q.no.length * fs * 0.62 + 8, bh = fs + 6, best = null;
+      [30, 46, 64, 86, 112, 142, 176].forEach(function (r) {
+        for (var k = 0; k < 24; k++) {
+          var a = k * Math.PI / 12, c = [q.p[0] + (r + bw / 2) * Math.cos(a), q.p[1] + (r + bh / 2) * Math.sin(a)];
+          var b = { x: c[0] - bw / 2, y: c[1] - bh / 2, w: bw, h: bh };
+          var da = Math.abs(a - (q.ang < 0 ? q.ang + 2 * Math.PI : q.ang)); if (da > Math.PI) da = 2 * Math.PI - da;
+          var cost = r + da * 30;
+          if (b.x < 4 || b.y < 4 || b.x + b.w > W - 4 || b.y + b.h > H - 4) cost += 5000;
+          boxes.forEach(function (o) { if (boxHit(b, o, 6)) cost += 2000; });
+          marks.forEach(function (m) { if (m.q !== q && boxHit(b, m, 3)) cost += 1500; });
+          leaders.forEach(function (l) { if (segHit(q.p, c, l[0], l[1])) cost += 400; });
+          if (!best || cost < best.cost) best = { cost: cost, b: b, c: c };
+        }
+      });
+      q.box = best.b; q.c = best.c; q.fs = fs;
+      boxes.push(best.b); leaders.push([q.p, best.c]);
+    });
+
+    // 地號位置：地塊內離邊界最遠、又不壓到點號的位置
+    var nx = 44, ny = Math.max(8, Math.round(nx * H / W)), obst = boxes.concat(marks, [{ x: 0, y: 0, w: 90, h: 110 }, { x: 0, y: H - 70, w: 260, h: 70 }]);
+    parcels.slice().sort(function (a, b) { return (b.mine - a.mine) || (b.nb - a.nb); }).forEach(function (pc) {
+      var fs = pc.mine ? 30 : pc.nb ? 26 : 19, bw = pc.no.length * fs * 0.62 + 8, bh = fs + 6, best = null;
+      for (var i = 1; i < nx; i++) for (var j = 1; j < ny; j++) {
+        var c = [i * W / nx, j * H / ny];
+        if (!inRings(c, pc.rings)) continue;
+        var b = { x: c[0] - bw / 2, y: c[1] - bh / 2, w: bw, h: bh };
+        if (b.x < 4 || b.y < 4 || b.x + b.w > W - 4 || b.y + b.h > H - 4) continue;
+        var sc = Math.min(distRings(c, pc.rings), c[0], c[1], W - c[0], H - c[1]);
+        if (obst.some(function (o) { return boxHit(b, o); })) sc -= 1000;
+        if (!best || sc > best.sc) best = { sc: sc, c: c, b: b };
+      }
+      if (best) { pc.c = best.c; pc.fs = fs; obst.push(best.b); }
+    });
+
+    var o = [];
+    o.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block;border:1px solid #333;background:#fff" font-family="Arial,\'Microsoft JhengHei\',sans-serif">');
+    parcels.forEach(function (pc) {
+      var d = pc.rings.map(function (r) { return 'M' + r.map(function (c) { return f1(c[0]) + ' ' + f1(c[1]); }).join('L') + 'Z'; }).join('');
+      o.push('<path d="' + d + '" fill-rule="evenodd" fill="' + (pc.mine ? '#fff3a0' : pc.nb ? '#eef3fb' : 'none') + '" stroke="' + (pc.mine ? '#000' : '#667') + '" stroke-width="' + (pc.mine ? 3 : 1.3) + '"/>');
+    });
+    parcels.forEach(function (pc) {
+      if (!pc.c) return;
+      o.push('<text class="emh-ll" x="' + f1(pc.c[0]) + '" y="' + f1(pc.c[1]) + '" text-anchor="middle" dominant-baseline="central" font-size="' + pc.fs + '"' +
+        (pc.mine || pc.nb ? ' font-weight="bold"' : '') + ' fill="' + (pc.mine ? '#000' : pc.nb ? '#1a3e8c' : '#777') + '" stroke="#fff" stroke-width="5" paint-order="stroke">' + esc(pc.no) + '</text>');
+    });
+    pts.forEach(function (q) {
+      o.push('<line x1="' + f1(q.p[0]) + '" y1="' + f1(q.p[1]) + '" x2="' + f1(q.c[0]) + '" y2="' + f1(q.c[1]) + '" stroke="' + (q.on ? '#c00' : '#999') + '" stroke-width="' + (q.on ? 1.4 : 1) + '"/>');
+    });
+    pts.forEach(function (q) {
+      o.push(q.on ? '<circle cx="' + f1(q.p[0]) + '" cy="' + f1(q.p[1]) + '" r="' + R + '" fill="#d00" stroke="#000" stroke-width="1.5"/>'
+        : '<circle cx="' + f1(q.p[0]) + '" cy="' + f1(q.p[1]) + '" r="5" fill="#fff" stroke="#777" stroke-width="1.5"/>');
+    });
+    pts.forEach(function (q) {
+      var b = q.box;
+      o.push('<rect x="' + f1(b.x) + '" y="' + f1(b.y) + '" width="' + f1(b.w) + '" height="' + f1(b.h) + '" rx="4" fill="#fff" stroke="' + (q.on ? '#c00' : '#aaa') + '" stroke-width="' + (q.on ? 1.6 : 1) + '"/>');
+      o.push('<text class="emh-pl" x="' + f1(q.c[0]) + '" y="' + f1(q.c[1]) + '" text-anchor="middle" dominant-baseline="central" font-size="' + q.fs + '"' +
+        (q.on ? ' font-weight="bold" fill="#000"' : ' fill="#777"') + '>' + esc(q.no) + '</text>');
+    });
+    // 指北與比例尺
+    o.push('<g transform="translate(40,34)"><path d="M0 34V-14M-9 0L0 -18L9 0" fill="none" stroke="#000" stroke-width="2.5"/><text x="0" y="56" text-anchor="middle" font-size="20">北</text></g>');
+    var mPerPx = groundScale([minx, (miny + maxy) / 2]) / s, L = 1;
+    [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].forEach(function (v) { if (v / mPerPx <= 220) L = v; });
+    var lp = L / mPerPx;
+    o.push('<g transform="translate(24,' + (H - 26) + ')"><path d="M0 -8V0H' + f1(lp) + 'V-8" fill="none" stroke="#000" stroke-width="2.5"/><text x="' + f1(lp / 2) + '" y="-8" text-anchor="middle" font-size="18">' + L + ' 公尺</text></g>');
+    o.push('</svg>');
+    return { svg: o.join(''), labels: pts.map(function (q) { return { no: q.no, x: q.box.x, y: q.box.y, w: q.box.w, h: q.box.h }; }) };
+  }
+
+  function placeName() {
+    try {
+      return ['#city', '#town', '#sect'].map(function (id) {
+        var e = document.querySelector(id); return e && e.selectedOptions[0] ? e.selectedOptions[0].text.trim() : '';
+      }).join('');
+    } catch (e) { return ''; }
+  }
+
+  function showPrint(last) {
+    var old = document.getElementById('emh-print'); if (old) old.remove();
+    var st = document.getElementById('emh-print-css');
+    if (!st) {
+      st = el('style'); st.id = 'emh-print-css';
+      st.textContent = '@media print{body>*:not(#emh-print){display:none!important}#emh-print{position:static!important;padding:0!important}' +
+        '.emh-noprint{display:none!important}}@page{size:A4 portrait;margin:12mm}' +
+        '#emh-print table{border-collapse:collapse;width:100%;margin:4px 0 10px}#emh-print th,#emh-print td{border:1px solid #333;padding:1px 8px;text-align:left;vertical-align:top;font-size:14px;line-height:1.45}' +
+        '#emh-print th{background:#eee;white-space:nowrap}#emh-print h2{font-size:17px;margin:10px 0 2px}#emh-print tr{break-inside:avoid}';
+      document.head.appendChild(st);
+    }
+    var checked = {}, nbSet = {}, apps = {};
+    last.pts.forEach(function (p) { checked[p.key] = 1; });
+    last.r.lands.forEach(function (l) { nbSet[l] = 1; });
+    last.typed.forEach(function (t) { apps[normLand(t)] = 1; });
+    var fig = drawFigure(last.pg, checked, apps, nbSet);
+    var d = new Date(), h = [];
+    h.push('<div class="emh-noprint" style="position:sticky;top:0;background:#333;color:#fff;padding:8px 12px;margin:-16px -16px 12px">' +
+      '<button type="button" id="emh-doprint" style="font-size:17px;padding:4px 18px;margin-right:10px">列印</button>' +
+      '<button type="button" id="emh-closeprint" style="font-size:17px;padding:4px 18px">關閉</button>' +
+      '<span style="margin-left:14px;font-size:14px">A4 直式；列印視窗的「邊界」選預設即可</span></div>');
+    h.push('<div style="max-width:186mm;margin:0 auto">');
+    h.push('<div style="display:flex;align-items:baseline;border-bottom:2px solid #000;padding-bottom:2px"><b style="font-size:21px;flex:1">鑑界界址點及鄰地圖說</b>' +
+      '<span style="font-size:13px">' + d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + ' 製</span></div>');
+    h.push('<div style="margin:5px 0;line-height:1.6">' + (placeName() ? '地段：' + esc(placeName()) + '　' : '') +
+      '申請地號：<b>' + esc(last.typed.join('、')) + '</b><br>' +
+      '鑑界點號（' + last.pts.length + ' 點）：' + esc(last.pts.map(function (p) { return p.no; }).sort(numCompare).join('、')) + '<br>' +
+      '鄰地共 <b>' + last.r.lands.length + '</b> 筆：<b>' + esc(last.r.lands.join('、') || '（無）') + '</b></div>');
+    if (last.warns.length) {
+      h.push('<div style="border:2px solid #c00;color:#c00;padding:3px 10px;margin:4px 0">※ 請注意<br>' + last.warns.map(esc).join('<br>') + '</div>');
+    }
+    h.push(fig.svg);
+    h.push('<div style="font-size:12.5px;margin:3px 0 6px">圖例：<span style="color:#d00">●</span> 鑑界點（粗字）　○ 未選的界址點（灰字）　' +
+      '<span style="background:#fff3a0;border:1px solid #000">　</span> 申請地　<span style="background:#eef3fb;border:1px solid #667">　</span> 鄰地　點號以引線拉開，位置以圓點為準。</div>');
+    h.push('<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1"><h2>鄰地清冊</h2><table><tr><th>鄰地地號</th><th>碰到的鑑界點</th></tr>');
+    last.r.lands.forEach(function (l) { h.push('<tr><td><b>' + esc(l) + '</b></td><td>' + esc(last.r.byLand[l].slice().sort(numCompare).join('、')) + '</td></tr>'); });
+    if (!last.r.lands.length) h.push('<tr><td colspan="2">（無）</td></tr>');
+    h.push('</table></div><div style="flex:1"><h2>點位對照</h2><table><tr><th>點號</th><th>碰到的鄰地</th></tr>');
+    last.r.perPoint.slice().sort(function (a, b) { return numCompare(a.no, b.no); }).forEach(function (pp) {
+      h.push('<tr><td><b>' + esc(pp.no) + '</b></td><td>' + esc(pp.lands.slice().sort(landCompare).join('、') || '—') + '</td></tr>');
+    });
+    h.push('</table></div></div>');
+    h.push('<div style="font-size:12px;color:#444;border-top:1px solid #999;padding-top:3px">本圖說依內政部土地複丈規費服務網頁之圖資自動產生，僅供核對與通知作業參考，實際位置以現場土地複丈為準。</div></div>');
+
+    var box = el('div', 'position:absolute;left:0;top:0;width:100%;min-height:100%;box-sizing:border-box;z-index:100000;background:#fff;color:#000;padding:16px;font:15px/1.5 "Microsoft JhengHei",sans-serif;');
+    box.id = 'emh-print';
+    box.innerHTML = h.join('');
+    document.body.appendChild(box);
+    window.scrollTo(0, 0);
+    document.getElementById('emh-doprint').onclick = function () { window.print(); };
+    document.getElementById('emh-closeprint').onclick = function () { box.remove(); };
+    window.__easymapHelperLabels = fig.labels;
+  }
+
   // ---------- 面板 ----------
   function el(tag, css, text) {
     var e = document.createElement(tag);
@@ -222,6 +412,15 @@
     b2.id = 'emh-list'; b2.type = 'button';
     box.appendChild(b1); box.appendChild(b2);
 
+    var warn = el('div', 'display:none;margin:8px 0 0;padding:6px 8px;background:#ffecec;border:2px solid #c00;border-radius:5px;color:#b00;font-weight:bold;white-space:pre-wrap;');
+    warn.id = 'emh-warn';
+    box.appendChild(warn);
+    var last = null;
+    function showWarn(list) {
+      warn.textContent = list.length ? '※ 請注意\n' + list.join('\n') : '';
+      warn.style.display = list.length ? 'block' : 'none';
+    }
+
     var out = el('pre', 'margin:8px 0 0;padding:8px;background:#f6f3ee;border-radius:5px;white-space:pre-wrap;' +
       'word-break:break-all;font:14px/1.6 "Microsoft JhengHei",sans-serif;min-height:40px;');
     out.id = 'emh-out';
@@ -230,9 +429,11 @@
     var foot = el('div', 'margin-top:4px;');
     var bc = el('button', btnCss + 'background:#fff;color:#333;border-color:#999;font-size:13px;', '複製結果');
     bc.id = 'emh-copy'; bc.type = 'button';
+    var bp = el('button', btnCss + 'background:#2a5db0;color:#fff;border-color:#2a5db0;font-size:14px;', '列印圖說');
+    bp.id = 'emh-print-btn'; bp.type = 'button'; bp.title = '點號不重疊的圖 ＋ 鄰地清冊，A4 一張';
     var bd = el('button', btnCss + 'background:#fff;color:#888;border-color:#ccc;font-size:12px;', '複製檢查資訊');
     bd.id = 'emh-diag'; bd.type = 'button'; bd.title = '工具不正常時，把這份資訊貼給維護的人';
-    foot.appendChild(bc); foot.appendChild(bd);
+    foot.appendChild(bc); foot.appendChild(bp); foot.appendChild(bd);
     box.appendChild(foot);
     document.body.appendChild(box);
 
@@ -253,20 +454,25 @@
       return pg;
     }
 
-    function listNeighbors(pg, prefix) {
-      var lines = prefix ? prefix.slice() : [];
+    function listNeighbors(pg, note, missing) {
+      last = null;
+      var lines = note ? [note, ''] : [], warns = [];
+      if (missing && missing.length) warns.push('圖上沒有這些點號（可能輸錯），未勾選：' + missing.join('、'));
       var apps = {}, typed = tokens(land.value);
       typed.forEach(function (t) { apps[normLand(t)] = 1; });
-      if (!typed.length) { out.textContent = lines.concat(['請先填「申請地號」。']).join('\n'); return; }
+      if (!typed.length) { showWarn(warns); out.textContent = lines.concat(['請先填「申請地號」。']).join('\n'); return; }
       var have = {};
       pg.parcels.forEach(function (p) { have[normLand(p.no)] = 1; });
       var notOnMap = typed.filter(function (t) { return !have[normLand(t)]; });
+      if (notOnMap.length) warns.push('圖上找不到這些申請地號：' + notOnMap.join('、') + '（請確認有沒有打錯）');
 
       var checked = currentChecked();
       var pts = pg.points.filter(function (p) { return checked[p.key]; });
-      if (!pts.length) { out.textContent = lines.concat(['目前沒有勾選任何點。']).join('\n'); return; }
+      if (!pts.length) { showWarn(warns); out.textContent = lines.concat(['目前沒有勾選任何點。']).join('\n'); return; }
 
       var r = findNeighbors(pts, pg.parcels, apps);
+      if (r.lonely.length) warns.push('這些點沒有碰到任何申請地號，未列入：' + r.lonely.join('、'));
+      r.loose.forEach(function (w) { warns.push('點 ' + w.point + ' 與地號 ' + w.land + ' 相距約 ' + w.cm + ' 公分，請目視確認'); });
       lines.push('申請地號：' + typed.join('、'));
       lines.push('勾選點號（' + pts.length + ' 點）：' + pts.map(function (p) { return p.no; }).join('、'));
       lines.push('');
@@ -276,12 +482,9 @@
         lines.push('明細（鄰地：碰到的點）');
         r.lands.forEach(function (l) { lines.push('  ' + l + '：' + r.byLand[l].join('、')); });
       }
-      var warn = [];
-      if (notOnMap.length) warn.push('圖上找不到這些申請地號：' + notOnMap.join('、') + '（請確認有沒有打錯）');
-      if (r.lonely.length) warn.push('這些點沒有碰到任何申請地號，未列入：' + r.lonely.join('、'));
-      r.loose.forEach(function (w) { warn.push('點 ' + w.point + ' 與地號 ' + w.land + ' 相距約 ' + w.cm + ' 公分，請目視確認'); });
-      if (warn.length) { lines.push(''); lines.push('※ 請注意'); warn.forEach(function (w) { lines.push('  ' + w); }); }
+      showWarn(warns);
       out.textContent = lines.join('\n');
+      last = { pg: pg, typed: typed, pts: pts, r: r, warns: warns };
     }
 
     b1.onclick = function () {
@@ -291,21 +494,20 @@
       pg.points.forEach(function (p) { known[p.key] = 1; });
       var r = parsePoints(ta.value, known);
       if (!r.list.length) {
-        out.textContent = '沒有可勾選的點號。' + (r.missing.length ? '\n圖上找不到：' + r.missing.join('、') : '請先輸入點號。');
+        last = null;
+        showWarn(r.missing.length ? ['圖上沒有這些點號（可能輸錯）：' + r.missing.join('、')] : []);
+        out.textContent = r.missing.length ? '沒有可勾選的點號，圖上的勾選沒有變動。' : '請先輸入點號。';
         return;
       }
       var n = applyChecked(pg, r.list);
       refreshInfo();
-      var pre = ['已勾選 ' + n + ' 個點，並已重新計算。'];
-      if (r.missing.length) pre.push('※ 圖上找不到這些點號，未勾選：' + r.missing.join('、'));
-      pre.push('');
-      listNeighbors(pg, pre);
+      listNeighbors(pg, '已勾選 ' + n + ' 個點，並已重新計算。', r.missing);
     };
 
     b2.onclick = function () {
       var pg = refreshInfo();
       if (!pg.ok) { out.textContent = info.textContent; return; }
-      listNeighbors(pg, []);
+      listNeighbors(pg, '', null);
     };
 
     function copy(text, btn) {
@@ -319,7 +521,13 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
       else fallback();
     }
-    bc.onclick = function () { copy(out.textContent, bc); };
+    bc.onclick = function () { copy((warn.textContent ? warn.textContent + '\n\n' : '') + out.textContent, bc); };
+    bp.onclick = function () {
+      var pg = refreshInfo();
+      if (!pg.ok) { out.textContent = info.textContent; return; }
+      if (!last) listNeighbors(pg, '', null);
+      if (last) showPrint(last);
+    };
     bd.onclick = function () { copy(diagnose(), bd); };
 
     refreshInfo();
@@ -358,7 +566,7 @@
   }
 
   // 給測試用
-  var api = { norm: norm, normLand: normLand, parsePoints: parsePoints, findNeighbors: findNeighbors, distToRing: distToRing };
+  var api = { drawFigure: drawFigure, norm: norm, normLand: normLand, parsePoints: parsePoints, findNeighbors: findNeighbors, distToRing: distToRing };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   window.__easymapHelper = api;
   buildPanel();
