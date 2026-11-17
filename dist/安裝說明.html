@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8">
+<title>鑑界點位小幫手 v1.0 安裝說明</title>
+<style>
+body{font:17px/1.8 "Microsoft JhengHei",sans-serif;max-width:760px;margin:30px auto;padding:0 16px;color:#222}
+h1{color:#c85a1e;font-size:26px} h2{font-size:20px;margin-top:28px;border-left:5px solid #c85a1e;padding-left:10px}
+.bm{display:inline-block;padding:8px 18px;background:#c85a1e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;cursor:grab}
+textarea{width:100%;height:90px;font:12px monospace} kbd{border:1px solid #999;border-radius:4px;padding:0 5px;background:#eee}
+.note{background:#fff7e6;border:1px solid #e8c88a;border-radius:6px;padding:8px 14px}
+button{font-size:16px;padding:4px 12px}
+</style></head><body>
+<h1>鑑界點位小幫手 v1.0</h1>
+<p>搭配「土地複丈規費(鑑界、分割)服務」網頁使用：輸入點號就自動勾選，並列出碰到的鄰地地號。</p>
+
+<h2>安裝（只要做一次）</h2>
+<ol>
+<li>按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 讓 Chrome 上方出現「書籤列」。</li>
+<li>用滑鼠把下面這顆橘色按鈕<b>拖到書籤列</b>上放開：<br>
+<a class="bm" id="bm" href="javascript:%2F*%20%E9%91%91%E7%95%8C%E9%BB%9E%E4%BD%8D%E5%B0%8F%E5%B9%AB%E6%89%8B%0A%20*%20%E7%94%A8%E5%9C%A8%20https%3A%2F%2Feasymap.moi.gov.tw%2FBSWeb%2F%20%E3%80%8C%E9%91%91%E7%95%8C%E8%A4%87%E4%B8%88%E8%A6%8F%E8%B2%BB%E8%A9%A6%E7%AE%97%E3%80%8D%E6%9F%A5%E8%A9%A2%E7%B5%90%E6%9E%9C%E9%A0%81%E9%9D%A2%E3%80%82%0A%20*%201.%20%E8%BC%B8%E5%85%A5%E9%BB%9E%E8%99%9F%20%E2%86%92%20%E8%87%AA%E5%8B%95%E5%8B%BE%E9%81%B8%E7%95%8C%E5%9D%80%E9%BB%9E%EF%BC%88%E4%B8%A6%E6%8C%89%E3%80%8C%E9%87%8D%E6%96%B0%E8%A8%88%E7%AE%97%E3%80%8D%EF%BC%89%0A%20*%202.%20%E4%BE%9D%E7%9B%AE%E5%89%8D%E5%8B%BE%E9%81%B8%E7%9A%84%E9%BB%9E%EF%BC%8C%E5%88%97%E5%87%BA%E7%A2%B0%E5%88%B0%E7%9A%84%E9%84%B0%E5%9C%B0%E5%9C%B0%E8%99%9F%0A%20*%0A%20*%20%E9%A0%81%E9%9D%A2%E4%B8%8A%E7%9A%84%E8%B3%87%E6%96%99%EF%BC%88%E7%94%B1%E8%A9%B2%E7%B6%B2%E7%AB%99%E8%87%AA%E5%B7%B1%E7%9A%84%E7%A8%8B%E5%BC%8F%E5%BB%BA%E7%AB%8B%EF%BC%89%EF%BC%9A%0A%20*%20%20%20Cadastral_source%20%20%20%20%20%20%E7%95%8C%E5%9D%80%E9%BB%9E%E5%9C%96%E5%B1%A4%EF%BC%8C%E9%BB%9E%E8%99%9F%E5%9C%A8%20ATTR%0A%20*%20%20%20map_Cadastral_source%20%20%E5%9C%B0%E7%B1%8D%E5%9C%96%E5%B1%A4%EF%BC%8C%E5%9C%B0%E8%99%9F%E5%9C%A8%20ATTR%EF%BC%8C%E6%9F%A5%E8%A9%A2%E7%9A%84%E5%9C%B0%E8%99%9F%20COLOR%20%3D%3D%20'true'%0A%20*%20%20%20send_point%20%20%20%20%20%20%20%20%20%20%20%20%E7%9B%AE%E5%89%8D%E5%8B%BE%E9%81%B8%E7%9A%84%E9%BB%9E%E8%99%9F%E6%B8%85%E5%96%AE%0A%20*%20%20%20reCalData(true)%20%20%20%20%20%20%20%E9%87%8D%E6%96%B0%E8%A8%88%E7%AE%97%E8%A6%8F%E8%B2%BB%0A%20*%2F%0A(function%20()%20%7B%0A%20%20'use%20strict'%3B%0A%20%20var%20VERSION%20%3D%20'1.0'%3B%0A%20%20var%20PANEL_ID%20%3D%20'emh-panel'%3B%0A%20%20var%20TOL_M%20%3D%200.10%3B%20%20%20%2F%2F%20%E9%BB%9E%E5%88%B0%E5%9C%B0%E7%95%8C%E5%9C%A8%2010%20%E5%85%AC%E5%88%86%E5%85%A7%E8%A6%96%E7%82%BA%E3%80%8C%E7%A2%B0%E5%88%B0%E3%80%8D%0A%20%20var%20WARN_M%20%3D%200.02%3B%20%20%2F%2F%20%E8%B6%85%E9%81%8E%202%20%E5%85%AC%E5%88%86%E5%B0%B1%E6%8F%90%E9%86%92%E7%9B%AE%E8%A6%96%E7%A2%BA%E8%AA%8D%0A%0A%20%20%2F%2F%20----------%20%E6%96%87%E5%AD%97%E8%99%95%E7%90%86%20----------%0A%20%20function%20norm(s)%20%7B%0A%20%20%20%20s%20%3D%20String(s%20%3D%3D%20null%20%3F%20''%20%3A%20s)%0A%20%20%20%20%20%20.replace(%2F%5B%EF%BC%81-%EF%BD%9E%5D%2Fg%2C%20function%20(c)%20%7B%20return%20String.fromCharCode(c.charCodeAt(0)%20-%200xFEE0)%3B%20%7D)%0A%20%20%20%20%20%20.replace(%2F%5Cs%2B%2Fg%2C%20'').toUpperCase()%3B%0A%20%20%20%20if%20(%2F%5E%5Cd%2B%24%2F.test(s))%20s%20%3D%20s.replace(%2F%5E0%2B(%3F%3D%5Cd)%2F%2C%20'')%3B%0A%20%20%20%20return%20s%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20%E5%9C%B0%E8%99%9F%E6%AF%94%E5%B0%8D%E7%94%A8%EF%BC%9A0012-0000%20%3D%2012%E3%80%8112-0%20%3D%2012%E3%80%810012-0003%20%3D%2012-3%0A%20%20function%20normLand(s)%20%7B%0A%20%20%20%20s%20%3D%20norm(s)%3B%0A%20%20%20%20var%20m%20%3D%20%2F%5E(%5Cd%2B)(%3F%3A-(%5Cd%2B))%3F%24%2F.exec(s)%3B%0A%20%20%20%20if%20(!m)%20return%20s%3B%0A%20%20%20%20var%20a%20%3D%20m%5B1%5D.replace(%2F%5E0%2B(%3F%3D%5Cd)%2F%2C%20'')%3B%0A%20%20%20%20var%20b%20%3D%20m%5B2%5D%20%3F%20m%5B2%5D.replace(%2F%5E0%2B(%3F%3D%5Cd)%2F%2C%20'')%20%3A%20'0'%3B%0A%20%20%20%20return%20b%20%3D%3D%3D%20'0'%20%3F%20a%20%3A%20a%20%2B%20'-'%20%2B%20b%3B%0A%20%20%7D%0A%0A%20%20function%20tokens(text)%20%7B%0A%20%20%20%20return%20String(text%20%7C%7C%20'')%0A%20%20%20%20%20%20.replace(%2F%5B%EF%BC%81-%EF%BD%9E%5D%2Fg%2C%20function%20(c)%20%7B%20return%20String.fromCharCode(c.charCodeAt(0)%20-%200xFEE0)%3B%20%7D)%0A%20%20%20%20%20%20.replace(%2F%5B%EF%BD%9E%E3%80%9C%E8%87%B3%E5%88%B0%5D%2Fg%2C%20'~')%0A%20%20%20%20%20%20.split(%2F%5B%5Cs%2C%3B%E3%80%81%EF%BC%8C%EF%BC%9B%E3%80%82.%5C%2F%5D%2B%2F)%0A%20%20%20%20%20%20.filter(function%20(t)%20%7B%20return%20t%20!%3D%3D%20''%3B%20%7D)%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20%E6%8A%8A%E3%80%8C1%2C2%2C5-8%E3%80%8D%E5%B1%95%E9%96%8B%EF%BC%9Bknown%20%E6%98%AF%E9%A0%81%E9%9D%A2%E4%B8%8A%E5%AF%A6%E9%9A%9B%E5%AD%98%E5%9C%A8%E7%9A%84%E9%BB%9E%E8%99%9F%EF%BC%88%E5%B7%B2%E6%AD%A3%E8%A6%8F%E5%8C%96%EF%BC%89%0A%20%20function%20parsePoints(text%2C%20known)%20%7B%0A%20%20%20%20var%20out%20%3D%20%5B%5D%2C%20missing%20%3D%20%5B%5D%2C%20seen%20%3D%20%7B%7D%3B%0A%20%20%20%20function%20add(k)%20%7B%20if%20(!seen%5Bk%5D)%20%7B%20seen%5Bk%5D%20%3D%201%3B%20out.push(k)%3B%20%7D%20%7D%0A%20%20%20%20tokens(text).forEach(function%20(t)%20%7B%0A%20%20%20%20%20%20var%20k%20%3D%20norm(t)%3B%0A%20%20%20%20%20%20if%20(known%5Bk%5D)%20%7B%20add(k)%3B%20return%3B%20%7D%0A%20%20%20%20%20%20var%20m%20%3D%20%2F%5E(%5Cd%2B)%5B-~%5D(%5Cd%2B)%24%2F.exec(k)%3B%0A%20%20%20%20%20%20if%20(m)%20%7B%0A%20%20%20%20%20%20%20%20var%20a%20%3D%20parseInt(m%5B1%5D%2C%2010)%2C%20b%20%3D%20parseInt(m%5B2%5D%2C%2010)%3B%0A%20%20%20%20%20%20%20%20if%20(a%20%3E%20b)%20%7B%20var%20x%20%3D%20a%3B%20a%20%3D%20b%3B%20b%20%3D%20x%3B%20%7D%0A%20%20%20%20%20%20%20%20if%20(b%20-%20a%20%3E%205000)%20%7B%20missing.push(t)%3B%20return%3B%20%7D%0A%20%20%20%20%20%20%20%20for%20(var%20i%20%3D%20a%3B%20i%20%3C%3D%20b%3B%20i%2B%2B)%20%7B%0A%20%20%20%20%20%20%20%20%20%20if%20(known%5BString(i)%5D)%20add(String(i))%3B%20else%20missing.push(String(i))%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20missing.push(t)%3B%0A%20%20%20%20%7D)%3B%0A%20%20%20%20return%20%7B%20list%3A%20out%2C%20missing%3A%20missing%20%7D%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20----------%20%E5%B9%BE%E4%BD%95%20----------%0A%20%20function%20rings(coords%2C%20out)%20%7B%0A%20%20%20%20if%20(!coords%20%7C%7C%20!coords.length)%20return%20out%3B%0A%20%20%20%20if%20(typeof%20coords%5B0%5D%5B0%5D%20%3D%3D%3D%20'number')%20out.push(coords)%3B%0A%20%20%20%20else%20coords.forEach(function%20(c)%20%7B%20rings(c%2C%20out)%3B%20%7D)%3B%0A%20%20%20%20return%20out%3B%0A%20%20%7D%0A%0A%20%20function%20distToRing(p%2C%20ring)%20%7B%0A%20%20%20%20var%20best%20%3D%20Infinity%3B%0A%20%20%20%20for%20(var%20i%20%3D%200%3B%20i%20%2B%201%20%3C%20ring.length%3B%20i%2B%2B)%20%7B%0A%20%20%20%20%20%20var%20ax%20%3D%20ring%5Bi%5D%5B0%5D%2C%20ay%20%3D%20ring%5Bi%5D%5B1%5D%2C%20bx%20%3D%20ring%5Bi%20%2B%201%5D%5B0%5D%2C%20by%20%3D%20ring%5Bi%20%2B%201%5D%5B1%5D%3B%0A%20%20%20%20%20%20var%20dx%20%3D%20bx%20-%20ax%2C%20dy%20%3D%20by%20-%20ay%2C%20len2%20%3D%20dx%20*%20dx%20%2B%20dy%20*%20dy%3B%0A%20%20%20%20%20%20var%20t%20%3D%20len2%20%3F%20((p%5B0%5D%20-%20ax)%20*%20dx%20%2B%20(p%5B1%5D%20-%20ay)%20*%20dy)%20%2F%20len2%20%3A%200%3B%0A%20%20%20%20%20%20t%20%3D%20t%20%3C%200%20%3F%200%20%3A%20t%20%3E%201%20%3F%201%20%3A%20t%3B%0A%20%20%20%20%20%20var%20ex%20%3D%20ax%20%2B%20t%20*%20dx%20-%20p%5B0%5D%2C%20ey%20%3D%20ay%20%2B%20t%20*%20dy%20-%20p%5B1%5D%3B%0A%20%20%20%20%20%20var%20d%20%3D%20Math.sqrt(ex%20*%20ex%20%2B%20ey%20*%20ey)%3B%0A%20%20%20%20%20%20if%20(d%20%3C%20best)%20best%20%3D%20d%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20best%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20%E5%9C%B0%E5%9C%96%E5%BA%A7%E6%A8%99%E6%98%AF%20Web%20Mercator%EF%BC%8C%E6%8F%9B%E7%AE%97%E6%88%90%E5%9C%B0%E9%9D%A2%E5%85%AC%E5%B0%BA%E8%A6%81%E4%B9%98%20cos(%E7%B7%AF%E5%BA%A6)%0A%20%20function%20groundScale(p)%20%7B%0A%20%20%20%20var%20lat%20%3D%20(2%20*%20Math.atan(Math.exp(p%5B1%5D%20%2F%206378137))%20-%20Math.PI%20%2F%202)%3B%0A%20%20%20%20return%20Math.cos(lat)%3B%0A%20%20%7D%0A%0A%20%20%2F*%20points%3A%20%5B%7Bno%2C%20xy%7D%5D%20%20%20parcels%3A%20%5B%7Bno%2C%20rings%7D%5D%20%20%20applicants%3A%20%7B%E6%AD%A3%E8%A6%8F%E5%8C%96%E5%9C%B0%E8%99%9F%3A%201%7D%0A%20%20%20*%20%E8%A6%8F%E5%89%87%EF%BC%9A%E5%8B%BE%E9%81%B8%E7%9A%84%E9%BB%9E%E5%90%8C%E6%99%82%E7%A2%B0%E5%88%B0%E3%80%8C%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%E3%80%8D%E5%92%8C%E3%80%8C%E9%9D%9E%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%E3%80%8D%E6%99%82%EF%BC%8C%E9%82%A3%E7%AD%86%E9%9D%9E%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%E5%B0%B1%E6%98%AF%E9%84%B0%E5%9C%B0%E3%80%82%20*%2F%0A%20%20function%20findNeighbors(points%2C%20parcels%2C%20applicants%2C%20tol)%20%7B%0A%20%20%20%20tol%20%3D%20tol%20%3D%3D%20null%20%3F%20TOL_M%20%3A%20tol%3B%0A%20%20%20%20var%20byLand%20%3D%20%7B%7D%2C%20order%20%3D%20%5B%5D%2C%20perPoint%20%3D%20%5B%5D%2C%20lonely%20%3D%20%5B%5D%2C%20loose%20%3D%20%5B%5D%3B%0A%20%20%20%20points.forEach(function%20(pt)%20%7B%0A%20%20%20%20%20%20var%20k%20%3D%20groundScale(pt.xy)%2C%20onApp%20%3D%20false%2C%20others%20%3D%20%5B%5D%3B%0A%20%20%20%20%20%20parcels.forEach(function%20(pc)%20%7B%0A%20%20%20%20%20%20%20%20var%20d%20%3D%20Infinity%3B%0A%20%20%20%20%20%20%20%20pc.rings.forEach(function%20(r)%20%7B%20var%20x%20%3D%20distToRing(pt.xy%2C%20r)%3B%20if%20(x%20%3C%20d)%20d%20%3D%20x%3B%20%7D)%3B%0A%20%20%20%20%20%20%20%20d%20*%3D%20k%3B%0A%20%20%20%20%20%20%20%20if%20(d%20%3E%20tol)%20return%3B%0A%20%20%20%20%20%20%20%20if%20(applicants%5BnormLand(pc.no)%5D)%20%7B%20onApp%20%3D%20true%3B%20return%3B%20%7D%0A%20%20%20%20%20%20%20%20if%20(others.every(function%20(o)%20%7B%20return%20o.no%20!%3D%3D%20pc.no%3B%20%7D))%20others.push(%7B%20no%3A%20pc.no%2C%20d%3A%20d%20%7D)%3B%0A%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%20%20if%20(!onApp)%20%7B%20lonely.push(pt.no)%3B%20perPoint.push(%7B%20no%3A%20pt.no%2C%20lands%3A%20%5B%5D%20%7D)%3B%20return%3B%20%7D%0A%20%20%20%20%20%20perPoint.push(%7B%20no%3A%20pt.no%2C%20lands%3A%20others.map(function%20(o)%20%7B%20return%20o.no%3B%20%7D)%20%7D)%3B%0A%20%20%20%20%20%20others.forEach(function%20(o)%20%7B%0A%20%20%20%20%20%20%20%20if%20(!byLand%5Bo.no%5D)%20%7B%20byLand%5Bo.no%5D%20%3D%20%5B%5D%3B%20order.push(o.no)%3B%20%7D%0A%20%20%20%20%20%20%20%20byLand%5Bo.no%5D.push(pt.no)%3B%0A%20%20%20%20%20%20%20%20if%20(o.d%20%3E%20WARN_M)%20loose.push(%7B%20point%3A%20pt.no%2C%20land%3A%20o.no%2C%20cm%3A%20Math.round(o.d%20*%20100)%20%7D)%3B%0A%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%7D)%3B%0A%20%20%20%20order.sort(landCompare)%3B%0A%20%20%20%20return%20%7B%20lands%3A%20order%2C%20byLand%3A%20byLand%2C%20perPoint%3A%20perPoint%2C%20lonely%3A%20lonely%2C%20loose%3A%20loose%20%7D%3B%0A%20%20%7D%0A%0A%20%20function%20landCompare(a%2C%20b)%20%7B%0A%20%20%20%20var%20pa%20%3D%20normLand(a).split('-')%2C%20pb%20%3D%20normLand(b).split('-')%3B%0A%20%20%20%20var%20d%20%3D%20(parseInt(pa%5B0%5D%2C%2010)%20%7C%7C%200)%20-%20(parseInt(pb%5B0%5D%2C%2010)%20%7C%7C%200)%3B%0A%20%20%20%20if%20(d)%20return%20d%3B%0A%20%20%20%20d%20%3D%20(parseInt(pa%5B1%5D%20%7C%7C%20'0'%2C%2010)%20%7C%7C%200)%20-%20(parseInt(pb%5B1%5D%20%7C%7C%20'0'%2C%2010)%20%7C%7C%200)%3B%0A%20%20%20%20return%20d%20%7C%7C%20(a%20%3C%20b%20%3F%20-1%20%3A%20a%20%3E%20b%20%3F%201%20%3A%200)%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20----------%20%E8%AE%80%E5%8F%96%E9%A0%81%E9%9D%A2%20----------%0A%20%20function%20page()%20%7B%0A%20%20%20%20%2F*%20global%20Cadastral_source%2C%20map_Cadastral_source%2C%20send_point%2C%20reCalData%2C%0A%20%20%20%20%20%20%20CadastralStyleSelectFunction%2C%20CadastralStyleUNSelectFunction%20*%2F%0A%20%20%20%20var%20p%20%3D%20%7B%20ok%3A%20false%2C%20points%3A%20%5B%5D%2C%20parcels%3A%20%5B%5D%20%7D%3B%0A%20%20%20%20if%20(typeof%20Cadastral_source%20%3D%3D%3D%20'undefined'%20%7C%7C%20typeof%20map_Cadastral_source%20%3D%3D%3D%20'undefined')%20return%20p%3B%0A%20%20%20%20Cadastral_source.getFeatures().forEach(function%20(f)%20%7B%0A%20%20%20%20%20%20var%20g%20%3D%20f.getGeometry()%3B%0A%20%20%20%20%20%20if%20(!g%20%7C%7C%20g.getType()%20!%3D%3D%20'Point')%20return%3B%0A%20%20%20%20%20%20if%20(f.get('TYPE')%20!%3D%20null%20%26%26%20f.get('TYPE')%20!%3D%3D%20'Point')%20return%3B%0A%20%20%20%20%20%20p.points.push(%7B%20no%3A%20String(f.get('ATTR'))%2C%20key%3A%20norm(f.get('ATTR'))%2C%20xy%3A%20g.getCoordinates()%2C%20f%3A%20f%20%7D)%3B%0A%20%20%20%20%7D)%3B%0A%20%20%20%20map_Cadastral_source.getFeatures().forEach(function%20(f)%20%7B%0A%20%20%20%20%20%20var%20g%20%3D%20f.getGeometry()%3B%0A%20%20%20%20%20%20if%20(!g%20%7C%7C%20!%2FPolygon%2F.test(g.getType()))%20return%3B%0A%20%20%20%20%20%20p.parcels.push(%7B%20no%3A%20String(f.get('ATTR'))%2C%20mine%3A%20String(f.get('COLOR'))%20%3D%3D%3D%20'true'%2C%20rings%3A%20rings(g.getCoordinates()%2C%20%5B%5D)%20%7D)%3B%0A%20%20%20%20%7D)%3B%0A%20%20%20%20p.ok%20%3D%20p.points.length%20%3E%200%3B%0A%20%20%20%20return%20p%3B%0A%20%20%7D%0A%0A%20%20function%20currentChecked()%20%7B%0A%20%20%20%20var%20set%20%3D%20%7B%7D%3B%0A%20%20%20%20if%20(typeof%20send_point%20!%3D%3D%20'undefined'%20%26%26%20send_point%20%26%26%20send_point.forEach)%20%7B%0A%20%20%20%20%20%20send_point.forEach(function%20(a)%20%7B%20set%5Bnorm(a)%5D%20%3D%201%3B%20%7D)%3B%0A%20%20%20%20%7D%0A%20%20%20%20return%20set%3B%0A%20%20%7D%0A%0A%20%20function%20applyChecked(pg%2C%20keys)%20%7B%0A%20%20%20%20var%20want%20%3D%20%7B%7D%2C%20list%20%3D%20%5B%5D%3B%0A%20%20%20%20keys.forEach(function%20(k)%20%7B%20want%5Bk%5D%20%3D%201%3B%20%7D)%3B%0A%20%20%20%20pg.points.forEach(function%20(pt)%20%7B%0A%20%20%20%20%20%20var%20on%20%3D%20!!want%5Bpt.key%5D%3B%0A%20%20%20%20%20%20if%20(on)%20list.push(pt.f.get('ATTR'))%3B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20if%20(on%20%26%26%20typeof%20CadastralStyleSelectFunction%20%3D%3D%3D%20'function')%20pt.f.setStyle(CadastralStyleSelectFunction(pt.f))%3B%0A%20%20%20%20%20%20%20%20if%20(!on%20%26%26%20typeof%20CadastralStyleUNSelectFunction%20%3D%3D%3D%20'function')%20pt.f.setStyle(CadastralStyleUNSelectFunction(pt.f))%3B%0A%20%20%20%20%20%20%7D%20catch%20(e)%20%7B%20%2F*%20%E6%A8%A3%E5%BC%8F%E5%A4%B1%E6%95%97%E4%B8%8D%E5%BD%B1%E9%9F%BF%E5%8B%BE%E9%81%B8%E6%B8%85%E5%96%AE%20*%2F%20%7D%0A%20%20%20%20%7D)%3B%0A%20%20%20%20if%20(typeof%20send_point%20%3D%3D%3D%20'undefined')%20window.send_point%20%3D%20list%3B%0A%20%20%20%20else%20send_point%20%3D%20list%3B%20%2F%2F%20eslint-disable-line%20no-global-assign%0A%20%20%20%20if%20(list.length%20%26%26%20typeof%20reCalData%20%3D%3D%3D%20'function')%20%7B%0A%20%20%20%20%20%20try%20%7B%20reCalData(true)%3B%20%7D%20catch%20(e)%20%7B%20%2F*%20%E4%BD%BF%E7%94%A8%E8%80%85%E5%8F%AF%E8%87%AA%E8%A1%8C%E6%8C%89%E3%80%8C%E9%87%8D%E6%96%B0%E8%A8%88%E7%AE%97%E3%80%8D%20*%2F%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20return%20list.length%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20----------%20%E9%9D%A2%E6%9D%BF%20----------%0A%20%20function%20el(tag%2C%20css%2C%20text)%20%7B%0A%20%20%20%20var%20e%20%3D%20document.createElement(tag)%3B%0A%20%20%20%20if%20(css)%20e.style.cssText%20%3D%20css%3B%0A%20%20%20%20if%20(text%20!%3D%20null)%20e.textContent%20%3D%20text%3B%0A%20%20%20%20return%20e%3B%0A%20%20%7D%0A%0A%20%20function%20buildPanel()%20%7B%0A%20%20%20%20var%20old%20%3D%20document.getElementById(PANEL_ID)%3B%0A%20%20%20%20if%20(old)%20old.remove()%3B%0A%0A%20%20%20%20var%20box%20%3D%20el('div'%2C%20'position%3Afixed%3Btop%3A12px%3Bright%3A12px%3Bz-index%3A99999%3Bwidth%3A340px%3Bmax-height%3A92vh%3Boverflow%3Aauto%3B'%20%2B%0A%20%20%20%20%20%20'background%3A%23fff%3Bborder%3A2px%20solid%20%23c85a1e%3Bborder-radius%3A8px%3Bbox-shadow%3A0%204px%2018px%20rgba(0%2C0%2C0%2C.35)%3B'%20%2B%0A%20%20%20%20%20%20'font%3A15px%2F1.5%20%22Microsoft%20JhengHei%22%2Csans-serif%3Bcolor%3A%23222%3Bpadding%3A10px%2012px%3B')%3B%0A%20%20%20%20box.id%20%3D%20PANEL_ID%3B%0A%0A%20%20%20%20var%20head%20%3D%20el('div'%2C%20'display%3Aflex%3Balign-items%3Acenter%3Bmargin-bottom%3A6px%3B')%3B%0A%20%20%20%20head.appendChild(el('b'%2C%20'flex%3A1%3Bfont-size%3A17px%3Bcolor%3A%23c85a1e%3B'%2C%20'%E9%91%91%E7%95%8C%E9%BB%9E%E4%BD%8D%E5%B0%8F%E5%B9%AB%E6%89%8B'))%3B%0A%20%20%20%20var%20x%20%3D%20el('button'%2C%20'border%3A0%3Bbackground%3Anone%3Bfont-size%3A20px%3Bcursor%3Apointer%3Bline-height%3A1%3B'%2C%20'%C3%97')%3B%0A%20%20%20%20x.type%20%3D%20'button'%3B%20x.title%20%3D%20'%E9%97%9C%E9%96%89'%3B%20x.onclick%20%3D%20function%20()%20%7B%20box.remove()%3B%20%7D%3B%0A%20%20%20%20head.appendChild(x)%3B%0A%20%20%20%20box.appendChild(head)%3B%0A%0A%20%20%20%20var%20info%20%3D%20el('div'%2C%20'font-size%3A13px%3Bcolor%3A%23555%3Bmargin-bottom%3A6px%3B')%3B%0A%20%20%20%20box.appendChild(info)%3B%0A%0A%20%20%20%20var%20btnCss%20%3D%20'margin%3A6px%206px%200%200%3Bpadding%3A5px%2010px%3Bborder%3A1px%20solid%20%23c85a1e%3Bborder-radius%3A5px%3Bcursor%3Apointer%3Bfont-size%3A15px%3B'%3B%0A%20%20%20%20var%20inCss%20%3D%20'width%3A100%25%3Bbox-sizing%3Aborder-box%3Bpadding%3A5px%3Bborder%3A1px%20solid%20%23999%3Bborder-radius%3A4px%3Bfont-size%3A15px%3B'%3B%0A%0A%20%20%20%20box.appendChild(el('div'%2C%20'font-weight%3Abold%3Bmargin-top%3A4px%3B'%2C%20'%E2%91%A0%20%E8%A6%81%E9%91%91%E7%95%8C%E7%9A%84%E9%BB%9E%E8%99%9F'))%3B%0A%20%20%20%20var%20ta%20%3D%20el('textarea'%2C%20inCss%20%2B%20'height%3A64px%3Bresize%3Avertical%3B')%3B%0A%20%20%20%20ta.id%20%3D%20'emh-points'%3B%20ta.placeholder%20%3D%20'%E4%BE%8B%EF%BC%9A1%2C2%2C5-8%E3%80%80%EF%BC%88%E9%80%97%E8%99%9F%E3%80%81%E7%A9%BA%E7%99%BD%E3%80%81%E6%8F%9B%E8%A1%8C%E9%83%BD%E5%8F%AF%E4%BB%A5%EF%BC%89'%3B%0A%20%20%20%20box.appendChild(ta)%3B%0A%0A%20%20%20%20box.appendChild(el('div'%2C%20'font-weight%3Abold%3Bmargin-top%3A8px%3B'%2C%20'%E2%91%A1%20%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%EF%BC%88%E5%8F%AF%E5%A4%9A%E7%AD%86%EF%BC%89'))%3B%0A%20%20%20%20var%20land%20%3D%20el('input'%2C%20inCss)%3B%0A%20%20%20%20land.id%20%3D%20'emh-lands'%3B%20land.type%20%3D%20'text'%3B%20land.placeholder%20%3D%20'%E4%BE%8B%EF%BC%9A123%2C123-1'%3B%0A%20%20%20%20box.appendChild(land)%3B%0A%0A%20%20%20%20var%20b1%20%3D%20el('button'%2C%20btnCss%20%2B%20'background%3A%23c85a1e%3Bcolor%3A%23fff%3B'%2C%20'%E5%8B%BE%E9%81%B8%E4%B8%A6%E5%88%97%E5%87%BA%E9%84%B0%E5%9C%B0')%3B%0A%20%20%20%20b1.id%20%3D%20'emh-apply'%3B%20b1.type%20%3D%20'button'%3B%0A%20%20%20%20var%20b2%20%3D%20el('button'%2C%20btnCss%20%2B%20'background%3A%23fff%3Bcolor%3A%23c85a1e%3B'%2C%20'%E5%8F%AA%E5%88%97%E9%84%B0%E5%9C%B0%EF%BC%88%E7%85%A7%E7%9B%AE%E5%89%8D%E5%8B%BE%E9%81%B8%EF%BC%89')%3B%0A%20%20%20%20b2.id%20%3D%20'emh-list'%3B%20b2.type%20%3D%20'button'%3B%0A%20%20%20%20box.appendChild(b1)%3B%20box.appendChild(b2)%3B%0A%0A%20%20%20%20var%20out%20%3D%20el('pre'%2C%20'margin%3A8px%200%200%3Bpadding%3A8px%3Bbackground%3A%23f6f3ee%3Bborder-radius%3A5px%3Bwhite-space%3Apre-wrap%3B'%20%2B%0A%20%20%20%20%20%20'word-break%3Abreak-all%3Bfont%3A14px%2F1.6%20%22Microsoft%20JhengHei%22%2Csans-serif%3Bmin-height%3A40px%3B')%3B%0A%20%20%20%20out.id%20%3D%20'emh-out'%3B%0A%20%20%20%20box.appendChild(out)%3B%0A%0A%20%20%20%20var%20foot%20%3D%20el('div'%2C%20'margin-top%3A4px%3B')%3B%0A%20%20%20%20var%20bc%20%3D%20el('button'%2C%20btnCss%20%2B%20'background%3A%23fff%3Bcolor%3A%23333%3Bborder-color%3A%23999%3Bfont-size%3A13px%3B'%2C%20'%E8%A4%87%E8%A3%BD%E7%B5%90%E6%9E%9C')%3B%0A%20%20%20%20bc.id%20%3D%20'emh-copy'%3B%20bc.type%20%3D%20'button'%3B%0A%20%20%20%20var%20bd%20%3D%20el('button'%2C%20btnCss%20%2B%20'background%3A%23fff%3Bcolor%3A%23888%3Bborder-color%3A%23ccc%3Bfont-size%3A12px%3B'%2C%20'%E8%A4%87%E8%A3%BD%E6%AA%A2%E6%9F%A5%E8%B3%87%E8%A8%8A')%3B%0A%20%20%20%20bd.id%20%3D%20'emh-diag'%3B%20bd.type%20%3D%20'button'%3B%20bd.title%20%3D%20'%E5%B7%A5%E5%85%B7%E4%B8%8D%E6%AD%A3%E5%B8%B8%E6%99%82%EF%BC%8C%E6%8A%8A%E9%80%99%E4%BB%BD%E8%B3%87%E8%A8%8A%E8%B2%BC%E7%B5%A6%E7%B6%AD%E8%AD%B7%E7%9A%84%E4%BA%BA'%3B%0A%20%20%20%20foot.appendChild(bc)%3B%20foot.appendChild(bd)%3B%0A%20%20%20%20box.appendChild(foot)%3B%0A%20%20%20%20document.body.appendChild(box)%3B%0A%0A%20%20%20%20function%20refreshInfo()%20%7B%0A%20%20%20%20%20%20var%20pg%20%3D%20page()%3B%0A%20%20%20%20%20%20if%20(!pg.ok)%20%7B%0A%20%20%20%20%20%20%20%20info.textContent%20%3D%20'%E9%82%84%E6%B2%92%E6%9C%89%E5%9C%96%E8%B3%87%EF%BC%9A%E8%AB%8B%E5%85%88%E9%81%B8%E5%A5%BD%E5%9C%B0%E6%AE%B5%E3%80%81%E8%BC%B8%E5%85%A5%E5%9C%B0%E8%99%9F%EF%BC%8C%E6%8C%89%E3%80%8C%E9%91%91%E7%95%8C%E8%A4%87%E4%B8%88%E8%A6%8F%E8%B2%BB%E8%A9%A6%E7%AE%97%E3%80%8D%EF%BC%8C%E5%9C%96%E5%87%BA%E4%BE%86%E5%BE%8C%E5%86%8D%E6%8C%89%E4%B8%80%E6%AC%A1%E6%8C%89%E9%88%95%E3%80%82'%3B%0A%20%20%20%20%20%20%20%20info.style.color%20%3D%20'%23b00'%3B%0A%20%20%20%20%20%20%20%20return%20pg%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20info.style.color%20%3D%20'%23555'%3B%0A%20%20%20%20%20%20var%20n%20%3D%20Object.keys(currentChecked()).length%3B%0A%20%20%20%20%20%20info.textContent%20%3D%20'%E6%9C%AC%E9%A0%81%E5%85%B1%20'%20%2B%20pg.points.length%20%2B%20'%20%E5%80%8B%E7%95%8C%E5%9D%80%E9%BB%9E%EF%BC%8C%E7%9B%AE%E5%89%8D%E5%8B%BE%E9%81%B8%20'%20%2B%20n%20%2B%20'%20%E5%80%8B%E3%80%82'%3B%0A%20%20%20%20%20%20if%20(!land.value)%20%7B%0A%20%20%20%20%20%20%20%20var%20mine%20%3D%20pg.parcels.filter(function%20(p)%20%7B%20return%20p.mine%3B%20%7D).map(function%20(p)%20%7B%20return%20p.no%3B%20%7D)%3B%0A%20%20%20%20%20%20%20%20land.value%20%3D%20mine.filter(function%20(v%2C%20i)%20%7B%20return%20mine.indexOf(v)%20%3D%3D%3D%20i%3B%20%7D).join('%2C')%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20pg%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20listNeighbors(pg%2C%20prefix)%20%7B%0A%20%20%20%20%20%20var%20lines%20%3D%20prefix%20%3F%20prefix.slice()%20%3A%20%5B%5D%3B%0A%20%20%20%20%20%20var%20apps%20%3D%20%7B%7D%2C%20typed%20%3D%20tokens(land.value)%3B%0A%20%20%20%20%20%20typed.forEach(function%20(t)%20%7B%20apps%5BnormLand(t)%5D%20%3D%201%3B%20%7D)%3B%0A%20%20%20%20%20%20if%20(!typed.length)%20%7B%20out.textContent%20%3D%20lines.concat(%5B'%E8%AB%8B%E5%85%88%E5%A1%AB%E3%80%8C%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%E3%80%8D%E3%80%82'%5D).join('%5Cn')%3B%20return%3B%20%7D%0A%20%20%20%20%20%20var%20have%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20pg.parcels.forEach(function%20(p)%20%7B%20have%5BnormLand(p.no)%5D%20%3D%201%3B%20%7D)%3B%0A%20%20%20%20%20%20var%20notOnMap%20%3D%20typed.filter(function%20(t)%20%7B%20return%20!have%5BnormLand(t)%5D%3B%20%7D)%3B%0A%0A%20%20%20%20%20%20var%20checked%20%3D%20currentChecked()%3B%0A%20%20%20%20%20%20var%20pts%20%3D%20pg.points.filter(function%20(p)%20%7B%20return%20checked%5Bp.key%5D%3B%20%7D)%3B%0A%20%20%20%20%20%20if%20(!pts.length)%20%7B%20out.textContent%20%3D%20lines.concat(%5B'%E7%9B%AE%E5%89%8D%E6%B2%92%E6%9C%89%E5%8B%BE%E9%81%B8%E4%BB%BB%E4%BD%95%E9%BB%9E%E3%80%82'%5D).join('%5Cn')%3B%20return%3B%20%7D%0A%0A%20%20%20%20%20%20var%20r%20%3D%20findNeighbors(pts%2C%20pg.parcels%2C%20apps)%3B%0A%20%20%20%20%20%20lines.push('%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%EF%BC%9A'%20%2B%20typed.join('%E3%80%81'))%3B%0A%20%20%20%20%20%20lines.push('%E5%8B%BE%E9%81%B8%E9%BB%9E%E8%99%9F%EF%BC%88'%20%2B%20pts.length%20%2B%20'%20%E9%BB%9E%EF%BC%89%EF%BC%9A'%20%2B%20pts.map(function%20(p)%20%7B%20return%20p.no%3B%20%7D).join('%E3%80%81'))%3B%0A%20%20%20%20%20%20lines.push('')%3B%0A%20%20%20%20%20%20lines.push('%E9%84%B0%E5%9C%B0%E5%85%B1%20'%20%2B%20r.lands.length%20%2B%20'%20%E7%AD%86%EF%BC%9A'%20%2B%20(r.lands.length%20%3F%20r.lands.join('%E3%80%81')%20%3A%20'%EF%BC%88%E7%84%A1%EF%BC%89'))%3B%0A%20%20%20%20%20%20if%20(r.lands.length)%20%7B%0A%20%20%20%20%20%20%20%20lines.push('')%3B%0A%20%20%20%20%20%20%20%20lines.push('%E6%98%8E%E7%B4%B0%EF%BC%88%E9%84%B0%E5%9C%B0%EF%BC%9A%E7%A2%B0%E5%88%B0%E7%9A%84%E9%BB%9E%EF%BC%89')%3B%0A%20%20%20%20%20%20%20%20r.lands.forEach(function%20(l)%20%7B%20lines.push('%20%20'%20%2B%20l%20%2B%20'%EF%BC%9A'%20%2B%20r.byLand%5Bl%5D.join('%E3%80%81'))%3B%20%7D)%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20var%20warn%20%3D%20%5B%5D%3B%0A%20%20%20%20%20%20if%20(notOnMap.length)%20warn.push('%E5%9C%96%E4%B8%8A%E6%89%BE%E4%B8%8D%E5%88%B0%E9%80%99%E4%BA%9B%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%EF%BC%9A'%20%2B%20notOnMap.join('%E3%80%81')%20%2B%20'%EF%BC%88%E8%AB%8B%E7%A2%BA%E8%AA%8D%E6%9C%89%E6%B2%92%E6%9C%89%E6%89%93%E9%8C%AF%EF%BC%89')%3B%0A%20%20%20%20%20%20if%20(r.lonely.length)%20warn.push('%E9%80%99%E4%BA%9B%E9%BB%9E%E6%B2%92%E6%9C%89%E7%A2%B0%E5%88%B0%E4%BB%BB%E4%BD%95%E7%94%B3%E8%AB%8B%E5%9C%B0%E8%99%9F%EF%BC%8C%E6%9C%AA%E5%88%97%E5%85%A5%EF%BC%9A'%20%2B%20r.lonely.join('%E3%80%81'))%3B%0A%20%20%20%20%20%20r.loose.forEach(function%20(w)%20%7B%20warn.push('%E9%BB%9E%20'%20%2B%20w.point%20%2B%20'%20%E8%88%87%E5%9C%B0%E8%99%9F%20'%20%2B%20w.land%20%2B%20'%20%E7%9B%B8%E8%B7%9D%E7%B4%84%20'%20%2B%20w.cm%20%2B%20'%20%E5%85%AC%E5%88%86%EF%BC%8C%E8%AB%8B%E7%9B%AE%E8%A6%96%E7%A2%BA%E8%AA%8D')%3B%20%7D)%3B%0A%20%20%20%20%20%20if%20(warn.length)%20%7B%20lines.push('')%3B%20lines.push('%E2%80%BB%20%E8%AB%8B%E6%B3%A8%E6%84%8F')%3B%20warn.forEach(function%20(w)%20%7B%20lines.push('%20%20'%20%2B%20w)%3B%20%7D)%3B%20%7D%0A%20%20%20%20%20%20out.textContent%20%3D%20lines.join('%5Cn')%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20b1.onclick%20%3D%20function%20()%20%7B%0A%20%20%20%20%20%20var%20pg%20%3D%20refreshInfo()%3B%0A%20%20%20%20%20%20if%20(!pg.ok)%20%7B%20out.textContent%20%3D%20info.textContent%3B%20return%3B%20%7D%0A%20%20%20%20%20%20var%20known%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20pg.points.forEach(function%20(p)%20%7B%20known%5Bp.key%5D%20%3D%201%3B%20%7D)%3B%0A%20%20%20%20%20%20var%20r%20%3D%20parsePoints(ta.value%2C%20known)%3B%0A%20%20%20%20%20%20if%20(!r.list.length)%20%7B%0A%20%20%20%20%20%20%20%20out.textContent%20%3D%20'%E6%B2%92%E6%9C%89%E5%8F%AF%E5%8B%BE%E9%81%B8%E7%9A%84%E9%BB%9E%E8%99%9F%E3%80%82'%20%2B%20(r.missing.length%20%3F%20'%5Cn%E5%9C%96%E4%B8%8A%E6%89%BE%E4%B8%8D%E5%88%B0%EF%BC%9A'%20%2B%20r.missing.join('%E3%80%81')%20%3A%20'%E8%AB%8B%E5%85%88%E8%BC%B8%E5%85%A5%E9%BB%9E%E8%99%9F%E3%80%82')%3B%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20var%20n%20%3D%20applyChecked(pg%2C%20r.list)%3B%0A%20%20%20%20%20%20refreshInfo()%3B%0A%20%20%20%20%20%20var%20pre%20%3D%20%5B'%E5%B7%B2%E5%8B%BE%E9%81%B8%20'%20%2B%20n%20%2B%20'%20%E5%80%8B%E9%BB%9E%EF%BC%8C%E4%B8%A6%E5%B7%B2%E9%87%8D%E6%96%B0%E8%A8%88%E7%AE%97%E3%80%82'%5D%3B%0A%20%20%20%20%20%20if%20(r.missing.length)%20pre.push('%E2%80%BB%20%E5%9C%96%E4%B8%8A%E6%89%BE%E4%B8%8D%E5%88%B0%E9%80%99%E4%BA%9B%E9%BB%9E%E8%99%9F%EF%BC%8C%E6%9C%AA%E5%8B%BE%E9%81%B8%EF%BC%9A'%20%2B%20r.missing.join('%E3%80%81'))%3B%0A%20%20%20%20%20%20pre.push('')%3B%0A%20%20%20%20%20%20listNeighbors(pg%2C%20pre)%3B%0A%20%20%20%20%7D%3B%0A%0A%20%20%20%20b2.onclick%20%3D%20function%20()%20%7B%0A%20%20%20%20%20%20var%20pg%20%3D%20refreshInfo()%3B%0A%20%20%20%20%20%20if%20(!pg.ok)%20%7B%20out.textContent%20%3D%20info.textContent%3B%20return%3B%20%7D%0A%20%20%20%20%20%20listNeighbors(pg%2C%20%5B%5D)%3B%0A%20%20%20%20%7D%3B%0A%0A%20%20%20%20function%20copy(text%2C%20btn)%20%7B%0A%20%20%20%20%20%20var%20done%20%3D%20function%20()%20%7B%20var%20t%20%3D%20btn.textContent%3B%20btn.textContent%20%3D%20'%E5%B7%B2%E8%A4%87%E8%A3%BD'%3B%20setTimeout(function%20()%20%7B%20btn.textContent%20%3D%20t%3B%20%7D%2C%201200)%3B%20%7D%3B%0A%20%20%20%20%20%20var%20fallback%20%3D%20function%20()%20%7B%0A%20%20%20%20%20%20%20%20var%20t%20%3D%20el('textarea'%2C%20'position%3Afixed%3Bleft%3A-9999px%3B')%3B%20t.value%20%3D%20text%3B%0A%20%20%20%20%20%20%20%20document.body.appendChild(t)%3B%20t.select()%3B%0A%20%20%20%20%20%20%20%20try%20%7B%20document.execCommand('copy')%3B%20done()%3B%20%7D%20catch%20(e)%20%7B%20%2F*%20%E7%84%A1%E6%B3%95%E8%A4%87%E8%A3%BD%E6%99%82%E8%AB%8B%E6%89%8B%E5%8B%95%E9%81%B8%E5%8F%96%20*%2F%20%7D%0A%20%20%20%20%20%20%20%20t.remove()%3B%0A%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%20%20if%20(navigator.clipboard%20%26%26%20navigator.clipboard.writeText)%20navigator.clipboard.writeText(text).then(done%2C%20fallback)%3B%0A%20%20%20%20%20%20else%20fallback()%3B%0A%20%20%20%20%7D%0A%20%20%20%20bc.onclick%20%3D%20function%20()%20%7B%20copy(out.textContent%2C%20bc)%3B%20%7D%3B%0A%20%20%20%20bd.onclick%20%3D%20function%20()%20%7B%20copy(diagnose()%2C%20bd)%3B%20%7D%3B%0A%0A%20%20%20%20refreshInfo()%3B%0A%20%20%20%20ta.focus()%3B%0A%20%20%7D%0A%0A%20%20function%20diagnose()%20%7B%0A%20%20%20%20var%20d%20%3D%20%7B%20tool%3A%20VERSION%2C%20url%3A%20location.href%20%7D%3B%0A%20%20%20%20function%20sample(name%2C%20src)%20%7B%0A%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20var%20fs%20%3D%20src.getFeatures()%3B%0A%20%20%20%20%20%20%20%20d%5Bname%5D%20%3D%20%7B%0A%20%20%20%20%20%20%20%20%20%20count%3A%20fs.length%2C%0A%20%20%20%20%20%20%20%20%20%20sample%3A%20fs.slice(0%2C%205).map(function%20(f)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20var%20o%20%3D%20%7B%7D%2C%20p%20%3D%20f.getProperties()%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20Object.keys(p).forEach(function%20(k)%20%7B%20if%20(k%20!%3D%3D%20'geometry')%20o%5Bk%5D%20%3D%20p%5Bk%5D%3B%20%7D)%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20var%20g%20%3D%20f.getGeometry()%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20o._geom%20%3D%20g%20%3F%20g.getType()%20%3A%20null%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20o%3B%0A%20%20%20%20%20%20%20%20%20%20%7D)%0A%20%20%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%20%20%7D%20catch%20(e)%20%7B%20d%5Bname%5D%20%3D%20'error%3A%20'%20%2B%20e%3B%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20d.has%20%3D%20%7B%0A%20%20%20%20%20%20Cadastral_source%3A%20typeof%20Cadastral_source%20!%3D%3D%20'undefined'%2C%0A%20%20%20%20%20%20map_Cadastral_source%3A%20typeof%20map_Cadastral_source%20!%3D%3D%20'undefined'%2C%0A%20%20%20%20%20%20send_point%3A%20typeof%20send_point%20!%3D%3D%20'undefined'%2C%0A%20%20%20%20%20%20reCalData%3A%20typeof%20reCalData%20%3D%3D%3D%20'function'%2C%0A%20%20%20%20%20%20select%3A%20typeof%20CadastralStyleSelectFunction%20%3D%3D%3D%20'function'%2C%0A%20%20%20%20%20%20unselect%3A%20typeof%20CadastralStyleUNSelectFunction%20%3D%3D%3D%20'function'%0A%20%20%20%20%7D%3B%0A%20%20%20%20if%20(d.has.Cadastral_source)%20sample('points'%2C%20Cadastral_source)%3B%0A%20%20%20%20if%20(d.has.map_Cadastral_source)%20sample('parcels'%2C%20map_Cadastral_source)%3B%0A%20%20%20%20if%20(d.has.send_point)%20%7B%20try%20%7B%20d.send_point%20%3D%20send_point.slice(0%2C%2020)%3B%20%7D%20catch%20(e)%20%7B%20d.send_point%20%3D%20String(e)%3B%20%7D%20%7D%0A%20%20%20%20return%20JSON.stringify(d%2C%20null%2C%201)%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20%E7%B5%A6%E6%B8%AC%E8%A9%A6%E7%94%A8%0A%20%20var%20api%20%3D%20%7B%20norm%3A%20norm%2C%20normLand%3A%20normLand%2C%20parsePoints%3A%20parsePoints%2C%20findNeighbors%3A%20findNeighbors%2C%20distToRing%3A%20distToRing%20%7D%3B%0A%20%20if%20(typeof%20module%20!%3D%3D%20'undefined'%20%26%26%20module.exports)%20%7B%20module.exports%20%3D%20api%3B%20return%3B%20%7D%0A%20%20window.__easymapHelper%20%3D%20api%3B%0A%20%20buildPanel()%3B%0A%7D)()%3B%0A;void 0">鑑界小幫手</a></li>
+</ol>
+
+<h2>使用</h2>
+<ol>
+<li>開啟 <a href="https://easymap.moi.gov.tw/BSWeb/" target="_blank">https://easymap.moi.gov.tw/BSWeb/</a>，選地段、輸入地號，按「鑑界複丈規費試算」，等地籍圖出來。</li>
+<li>按書籤列上的「鑑界小幫手」，右上角會出現小面板。</li>
+<li>在 ① 輸入紙本附件上的點號（例：<code>1,2,5-8</code>），② 確認申請地號（會自動帶入查詢的地號，多筆用逗號分開）。</li>
+<li>按「勾選並列出鄰地」：圖上的點會勾好、規費重新計算，面板下方列出鄰地。</li>
+<li>若是自己在圖上手動勾選，按「只列鄰地（照目前勾選）」即可。</li>
+<li>「複製結果」可貼到 Word、Excel 或通知書清冊。</li>
+</ol>
+<p class="note">鄰地的算法：勾選的點如果同時碰到「申請地號」和「不是申請地號」的土地，那筆不是申請地號的土地就算鄰地。<br>
+列出的鄰地以該網頁圖上畫出的地號為準，寄發通知前請再目視核對一次。</p>
+
+<h2>書籤拖不進去時（備用方法）</h2>
+<ol>
+<li>在該網頁按 <kbd>F12</kbd>，點上方「Console（主控台）」。</li>
+<li>按下面的「複製程式」，到主控台貼上（第一次要先輸入 <code>allow pasting</code> 再按 Enter），按 Enter。</li>
+</ol>
+<button type="button" onclick="var t=document.getElementById('code');t.select();document.execCommand('copy');this.textContent='已複製'">複製程式</button>
+<textarea id="code" readonly>/* 鑑界點位小幫手
+ * 用在 https://easymap.moi.gov.tw/BSWeb/ 「鑑界複丈規費試算」查詢結果頁面。
+ * 1. 輸入點號 → 自動勾選界址點（並按「重新計算」）
+ * 2. 依目前勾選的點，列出碰到的鄰地地號
+ *
+ * 頁面上的資料（由該網站自己的程式建立）：
+ *   Cadastral_source      界址點圖層，點號在 ATTR
+ *   map_Cadastral_source  地籍圖層，地號在 ATTR，查詢的地號 COLOR == 'true'
+ *   send_point            目前勾選的點號清單
+ *   reCalData(true)       重新計算規費
+ */
+(function () {
+  'use strict';
+  var VERSION = '1.0';
+  var PANEL_ID = 'emh-panel';
+  var TOL_M = 0.10;   // 點到地界在 10 公分內視為「碰到」
+  var WARN_M = 0.02;  // 超過 2 公分就提醒目視確認
+
+  // ---------- 文字處理 ----------
+  function norm(s) {
+    s = String(s == null ? '' : s)
+      .replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/\s+/g, '').toUpperCase();
+    if (/^\d+$/.test(s)) s = s.replace(/^0+(?=\d)/, '');
+    return s;
+  }
+
+  // 地號比對用：0012-0000 = 12、12-0 = 12、0012-0003 = 12-3
+  function normLand(s) {
+    s = norm(s);
+    var m = /^(\d+)(?:-(\d+))?$/.exec(s);
+    if (!m) return s;
+    var a = m[1].replace(/^0+(?=\d)/, '');
+    var b = m[2] ? m[2].replace(/^0+(?=\d)/, '') : '0';
+    return b === '0' ? a : a + '-' + b;
+  }
+
+  function tokens(text) {
+    return String(text || '')
+      .replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/[～〜至到]/g, '~')
+      .split(/[\s,;、，；。.\/]+/)
+      .filter(function (t) { return t !== ''; });
+  }
+
+  // 把「1,2,5-8」展開；known 是頁面上實際存在的點號（已正規化）
+  function parsePoints(text, known) {
+    var out = [], missing = [], seen = {};
+    function add(k) { if (!seen[k]) { seen[k] = 1; out.push(k); } }
+    tokens(text).forEach(function (t) {
+      var k = norm(t);
+      if (known[k]) { add(k); return; }
+      var m = /^(\d+)[-~](\d+)$/.exec(k);
+      if (m) {
+        var a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+        if (a > b) { var x = a; a = b; b = x; }
+        if (b - a > 5000) { missing.push(t); return; }
+        for (var i = a; i &lt;= b; i++) {
+          if (known[String(i)]) add(String(i)); else missing.push(String(i));
+        }
+        return;
+      }
+      missing.push(t);
+    });
+    return { list: out, missing: missing };
+  }
+
+  // ---------- 幾何 ----------
+  function rings(coords, out) {
+    if (!coords || !coords.length) return out;
+    if (typeof coords[0][0] === 'number') out.push(coords);
+    else coords.forEach(function (c) { rings(c, out); });
+    return out;
+  }
+
+  function distToRing(p, ring) {
+    var best = Infinity;
+    for (var i = 0; i + 1 &lt; ring.length; i++) {
+      var ax = ring[i][0], ay = ring[i][1], bx = ring[i + 1][0], by = ring[i + 1][1];
+      var dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+      var t = len2 ? ((p[0] - ax) * dx + (p[1] - ay) * dy) / len2 : 0;
+      t = t &lt; 0 ? 0 : t > 1 ? 1 : t;
+      var ex = ax + t * dx - p[0], ey = ay + t * dy - p[1];
+      var d = Math.sqrt(ex * ex + ey * ey);
+      if (d &lt; best) best = d;
+    }
+    return best;
+  }
+
+  // 地圖座標是 Web Mercator，換算成地面公尺要乘 cos(緯度)
+  function groundScale(p) {
+    var lat = (2 * Math.atan(Math.exp(p[1] / 6378137)) - Math.PI / 2);
+    return Math.cos(lat);
+  }
+
+  /* points: [{no, xy}]   parcels: [{no, rings}]   applicants: {正規化地號: 1}
+   * 規則：勾選的點同時碰到「申請地號」和「非申請地號」時，那筆非申請地號就是鄰地。 */
+  function findNeighbors(points, parcels, applicants, tol) {
+    tol = tol == null ? TOL_M : tol;
+    var byLand = {}, order = [], perPoint = [], lonely = [], loose = [];
+    points.forEach(function (pt) {
+      var k = groundScale(pt.xy), onApp = false, others = [];
+      parcels.forEach(function (pc) {
+        var d = Infinity;
+        pc.rings.forEach(function (r) { var x = distToRing(pt.xy, r); if (x &lt; d) d = x; });
+        d *= k;
+        if (d > tol) return;
+        if (applicants[normLand(pc.no)]) { onApp = true; return; }
+        if (others.every(function (o) { return o.no !== pc.no; })) others.push({ no: pc.no, d: d });
+      });
+      if (!onApp) { lonely.push(pt.no); perPoint.push({ no: pt.no, lands: [] }); return; }
+      perPoint.push({ no: pt.no, lands: others.map(function (o) { return o.no; }) });
+      others.forEach(function (o) {
+        if (!byLand[o.no]) { byLand[o.no] = []; order.push(o.no); }
+        byLand[o.no].push(pt.no);
+        if (o.d > WARN_M) loose.push({ point: pt.no, land: o.no, cm: Math.round(o.d * 100) });
+      });
+    });
+    order.sort(landCompare);
+    return { lands: order, byLand: byLand, perPoint: perPoint, lonely: lonely, loose: loose };
+  }
+
+  function landCompare(a, b) {
+    var pa = normLand(a).split('-'), pb = normLand(b).split('-');
+    var d = (parseInt(pa[0], 10) || 0) - (parseInt(pb[0], 10) || 0);
+    if (d) return d;
+    d = (parseInt(pa[1] || '0', 10) || 0) - (parseInt(pb[1] || '0', 10) || 0);
+    return d || (a &lt; b ? -1 : a > b ? 1 : 0);
+  }
+
+  // ---------- 讀取頁面 ----------
+  function page() {
+    /* global Cadastral_source, map_Cadastral_source, send_point, reCalData,
+       CadastralStyleSelectFunction, CadastralStyleUNSelectFunction */
+    var p = { ok: false, points: [], parcels: [] };
+    if (typeof Cadastral_source === 'undefined' || typeof map_Cadastral_source === 'undefined') return p;
+    Cadastral_source.getFeatures().forEach(function (f) {
+      var g = f.getGeometry();
+      if (!g || g.getType() !== 'Point') return;
+      if (f.get('TYPE') != null &amp;&amp; f.get('TYPE') !== 'Point') return;
+      p.points.push({ no: String(f.get('ATTR')), key: norm(f.get('ATTR')), xy: g.getCoordinates(), f: f });
+    });
+    map_Cadastral_source.getFeatures().forEach(function (f) {
+      var g = f.getGeometry();
+      if (!g || !/Polygon/.test(g.getType())) return;
+      p.parcels.push({ no: String(f.get('ATTR')), mine: String(f.get('COLOR')) === 'true', rings: rings(g.getCoordinates(), []) });
+    });
+    p.ok = p.points.length > 0;
+    return p;
+  }
+
+  function currentChecked() {
+    var set = {};
+    if (typeof send_point !== 'undefined' &amp;&amp; send_point &amp;&amp; send_point.forEach) {
+      send_point.forEach(function (a) { set[norm(a)] = 1; });
+    }
+    return set;
+  }
+
+  function applyChecked(pg, keys) {
+    var want = {}, list = [];
+    keys.forEach(function (k) { want[k] = 1; });
+    pg.points.forEach(function (pt) {
+      var on = !!want[pt.key];
+      if (on) list.push(pt.f.get('ATTR'));
+      try {
+        if (on &amp;&amp; typeof CadastralStyleSelectFunction === 'function') pt.f.setStyle(CadastralStyleSelectFunction(pt.f));
+        if (!on &amp;&amp; typeof CadastralStyleUNSelectFunction === 'function') pt.f.setStyle(CadastralStyleUNSelectFunction(pt.f));
+      } catch (e) { /* 樣式失敗不影響勾選清單 */ }
+    });
+    if (typeof send_point === 'undefined') window.send_point = list;
+    else send_point = list; // eslint-disable-line no-global-assign
+    if (list.length &amp;&amp; typeof reCalData === 'function') {
+      try { reCalData(true); } catch (e) { /* 使用者可自行按「重新計算」 */ }
+    }
+    return list.length;
+  }
+
+  // ---------- 面板 ----------
+  function el(tag, css, text) {
+    var e = document.createElement(tag);
+    if (css) e.style.cssText = css;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function buildPanel() {
+    var old = document.getElementById(PANEL_ID);
+    if (old) old.remove();
+
+    var box = el('div', 'position:fixed;top:12px;right:12px;z-index:99999;width:340px;max-height:92vh;overflow:auto;' +
+      'background:#fff;border:2px solid #c85a1e;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.35);' +
+      'font:15px/1.5 &quot;Microsoft JhengHei&quot;,sans-serif;color:#222;padding:10px 12px;');
+    box.id = PANEL_ID;
+
+    var head = el('div', 'display:flex;align-items:center;margin-bottom:6px;');
+    head.appendChild(el('b', 'flex:1;font-size:17px;color:#c85a1e;', '鑑界點位小幫手'));
+    var x = el('button', 'border:0;background:none;font-size:20px;cursor:pointer;line-height:1;', '×');
+    x.type = 'button'; x.title = '關閉'; x.onclick = function () { box.remove(); };
+    head.appendChild(x);
+    box.appendChild(head);
+
+    var info = el('div', 'font-size:13px;color:#555;margin-bottom:6px;');
+    box.appendChild(info);
+
+    var btnCss = 'margin:6px 6px 0 0;padding:5px 10px;border:1px solid #c85a1e;border-radius:5px;cursor:pointer;font-size:15px;';
+    var inCss = 'width:100%;box-sizing:border-box;padding:5px;border:1px solid #999;border-radius:4px;font-size:15px;';
+
+    box.appendChild(el('div', 'font-weight:bold;margin-top:4px;', '① 要鑑界的點號'));
+    var ta = el('textarea', inCss + 'height:64px;resize:vertical;');
+    ta.id = 'emh-points'; ta.placeholder = '例：1,2,5-8　（逗號、空白、換行都可以）';
+    box.appendChild(ta);
+
+    box.appendChild(el('div', 'font-weight:bold;margin-top:8px;', '② 申請地號（可多筆）'));
+    var land = el('input', inCss);
+    land.id = 'emh-lands'; land.type = 'text'; land.placeholder = '例：123,123-1';
+    box.appendChild(land);
+
+    var b1 = el('button', btnCss + 'background:#c85a1e;color:#fff;', '勾選並列出鄰地');
+    b1.id = 'emh-apply'; b1.type = 'button';
+    var b2 = el('button', btnCss + 'background:#fff;color:#c85a1e;', '只列鄰地（照目前勾選）');
+    b2.id = 'emh-list'; b2.type = 'button';
+    box.appendChild(b1); box.appendChild(b2);
+
+    var out = el('pre', 'margin:8px 0 0;padding:8px;background:#f6f3ee;border-radius:5px;white-space:pre-wrap;' +
+      'word-break:break-all;font:14px/1.6 &quot;Microsoft JhengHei&quot;,sans-serif;min-height:40px;');
+    out.id = 'emh-out';
+    box.appendChild(out);
+
+    var foot = el('div', 'margin-top:4px;');
+    var bc = el('button', btnCss + 'background:#fff;color:#333;border-color:#999;font-size:13px;', '複製結果');
+    bc.id = 'emh-copy'; bc.type = 'button';
+    var bd = el('button', btnCss + 'background:#fff;color:#888;border-color:#ccc;font-size:12px;', '複製檢查資訊');
+    bd.id = 'emh-diag'; bd.type = 'button'; bd.title = '工具不正常時，把這份資訊貼給維護的人';
+    foot.appendChild(bc); foot.appendChild(bd);
+    box.appendChild(foot);
+    document.body.appendChild(box);
+
+    function refreshInfo() {
+      var pg = page();
+      if (!pg.ok) {
+        info.textContent = '還沒有圖資：請先選好地段、輸入地號，按「鑑界複丈規費試算」，圖出來後再按一次按鈕。';
+        info.style.color = '#b00';
+        return pg;
+      }
+      info.style.color = '#555';
+      var n = Object.keys(currentChecked()).length;
+      info.textContent = '本頁共 ' + pg.points.length + ' 個界址點，目前勾選 ' + n + ' 個。';
+      if (!land.value) {
+        var mine = pg.parcels.filter(function (p) { return p.mine; }).map(function (p) { return p.no; });
+        land.value = mine.filter(function (v, i) { return mine.indexOf(v) === i; }).join(',');
+      }
+      return pg;
+    }
+
+    function listNeighbors(pg, prefix) {
+      var lines = prefix ? prefix.slice() : [];
+      var apps = {}, typed = tokens(land.value);
+      typed.forEach(function (t) { apps[normLand(t)] = 1; });
+      if (!typed.length) { out.textContent = lines.concat(['請先填「申請地號」。']).join('\n'); return; }
+      var have = {};
+      pg.parcels.forEach(function (p) { have[normLand(p.no)] = 1; });
+      var notOnMap = typed.filter(function (t) { return !have[normLand(t)]; });
+
+      var checked = currentChecked();
+      var pts = pg.points.filter(function (p) { return checked[p.key]; });
+      if (!pts.length) { out.textContent = lines.concat(['目前沒有勾選任何點。']).join('\n'); return; }
+
+      var r = findNeighbors(pts, pg.parcels, apps);
+      lines.push('申請地號：' + typed.join('、'));
+      lines.push('勾選點號（' + pts.length + ' 點）：' + pts.map(function (p) { return p.no; }).join('、'));
+      lines.push('');
+      lines.push('鄰地共 ' + r.lands.length + ' 筆：' + (r.lands.length ? r.lands.join('、') : '（無）'));
+      if (r.lands.length) {
+        lines.push('');
+        lines.push('明細（鄰地：碰到的點）');
+        r.lands.forEach(function (l) { lines.push('  ' + l + '：' + r.byLand[l].join('、')); });
+      }
+      var warn = [];
+      if (notOnMap.length) warn.push('圖上找不到這些申請地號：' + notOnMap.join('、') + '（請確認有沒有打錯）');
+      if (r.lonely.length) warn.push('這些點沒有碰到任何申請地號，未列入：' + r.lonely.join('、'));
+      r.loose.forEach(function (w) { warn.push('點 ' + w.point + ' 與地號 ' + w.land + ' 相距約 ' + w.cm + ' 公分，請目視確認'); });
+      if (warn.length) { lines.push(''); lines.push('※ 請注意'); warn.forEach(function (w) { lines.push('  ' + w); }); }
+      out.textContent = lines.join('\n');
+    }
+
+    b1.onclick = function () {
+      var pg = refreshInfo();
+      if (!pg.ok) { out.textContent = info.textContent; return; }
+      var known = {};
+      pg.points.forEach(function (p) { known[p.key] = 1; });
+      var r = parsePoints(ta.value, known);
+      if (!r.list.length) {
+        out.textContent = '沒有可勾選的點號。' + (r.missing.length ? '\n圖上找不到：' + r.missing.join('、') : '請先輸入點號。');
+        return;
+      }
+      var n = applyChecked(pg, r.list);
+      refreshInfo();
+      var pre = ['已勾選 ' + n + ' 個點，並已重新計算。'];
+      if (r.missing.length) pre.push('※ 圖上找不到這些點號，未勾選：' + r.missing.join('、'));
+      pre.push('');
+      listNeighbors(pg, pre);
+    };
+
+    b2.onclick = function () {
+      var pg = refreshInfo();
+      if (!pg.ok) { out.textContent = info.textContent; return; }
+      listNeighbors(pg, []);
+    };
+
+    function copy(text, btn) {
+      var done = function () { var t = btn.textContent; btn.textContent = '已複製'; setTimeout(function () { btn.textContent = t; }, 1200); };
+      var fallback = function () {
+        var t = el('textarea', 'position:fixed;left:-9999px;'); t.value = text;
+        document.body.appendChild(t); t.select();
+        try { document.execCommand('copy'); done(); } catch (e) { /* 無法複製時請手動選取 */ }
+        t.remove();
+      };
+      if (navigator.clipboard &amp;&amp; navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+      else fallback();
+    }
+    bc.onclick = function () { copy(out.textContent, bc); };
+    bd.onclick = function () { copy(diagnose(), bd); };
+
+    refreshInfo();
+    ta.focus();
+  }
+
+  function diagnose() {
+    var d = { tool: VERSION, url: location.href };
+    function sample(name, src) {
+      try {
+        var fs = src.getFeatures();
+        d[name] = {
+          count: fs.length,
+          sample: fs.slice(0, 5).map(function (f) {
+            var o = {}, p = f.getProperties();
+            Object.keys(p).forEach(function (k) { if (k !== 'geometry') o[k] = p[k]; });
+            var g = f.getGeometry();
+            o._geom = g ? g.getType() : null;
+            return o;
+          })
+        };
+      } catch (e) { d[name] = 'error: ' + e; }
+    }
+    d.has = {
+      Cadastral_source: typeof Cadastral_source !== 'undefined',
+      map_Cadastral_source: typeof map_Cadastral_source !== 'undefined',
+      send_point: typeof send_point !== 'undefined',
+      reCalData: typeof reCalData === 'function',
+      select: typeof CadastralStyleSelectFunction === 'function',
+      unselect: typeof CadastralStyleUNSelectFunction === 'function'
+    };
+    if (d.has.Cadastral_source) sample('points', Cadastral_source);
+    if (d.has.map_Cadastral_source) sample('parcels', map_Cadastral_source);
+    if (d.has.send_point) { try { d.send_point = send_point.slice(0, 20); } catch (e) { d.send_point = String(e); } }
+    return JSON.stringify(d, null, 1);
+  }
+
+  // 給測試用
+  var api = { norm: norm, normLand: normLand, parsePoints: parsePoints, findNeighbors: findNeighbors, distToRing: distToRing };
+  if (typeof module !== 'undefined' &amp;&amp; module.exports) { module.exports = api; return; }
+  window.__easymapHelper = api;
+  buildPanel();
+})();
+</textarea>
+</body></html>

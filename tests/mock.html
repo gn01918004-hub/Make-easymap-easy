@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>mock BSWeb</title></head>
+<body>
+<div id="div_result"><div id="map" style="width:600px;height:400px"></div><div id="table_result"></div></div>
+<script src="OL_JS"></script>
+<script>
+// 模擬 BSWeb 查詢後的狀態（變數名稱與原站 map_layer.js / map_button.js / Util.js 相同）
+var base = ol.proj.fromLonLat([120.9, 24.6]);
+function P(x, y) { return [base[0] + x, base[1] + y]; }
+function poly(no, mine, pts) {
+  pts = pts.map(function (p) { return P(p[0], p[1]); }); pts.push(pts[0]);
+  var f = new ol.Feature(new ol.geom.Polygon([pts])); f.set('ATTR', no); f.set('COLOR', mine ? 'true' : 'false'); return f;
+}
+function pt(no, x, y) { var f = new ol.Feature(new ol.geom.Point(P(x, y))); f.set('ATTR', no); f.set('TYPE', 'Point'); return f; }
+var map_Cadastral_source = new ol.source.Vector();
+var Cadastral_source = new ol.source.Vector();
+map_Cadastral_source.addFeatures([
+  poly('10', true,  [[0,0],[10,0],[10,10],[0,10]]),
+  poly('11', false, [[10,0],[20,0],[20,10],[10,10]]),
+  poly('20', false, [[-10,0],[0,0],[0,10],[-10,10]]),
+  poly('21', false, [[5,10],[15,10],[15,20],[5,20]]),
+  poly('22-1', false, [[-10,10],[5,10],[5,20],[-10,20]]),
+  poly('30', false, [[40,40],[50,40],[50,50],[40,50]])
+]);
+Cadastral_source.addFeatures([pt('1',0,0), pt('2',10,0), pt('3',20,0), pt('4',20,10), pt('5',10,10), pt('6',0,10)]);
+var send_point = [];
+var styleLog = {};
+function CadastralStyleSelectFunction(f) { styleLog[f.get('ATTR')] = 'on'; return new ol.style.Style({}); }
+function CadastralStyleUNSelectFunction(f) { styleLog[f.get('ATTR')] = 'off'; return new ol.style.Style({}); }
+var recalc = 0;
+function reCalData(open) { recalc++; }
+</script>
+</body></html>

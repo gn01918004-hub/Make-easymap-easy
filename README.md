@@ -1,0 +1,44 @@
+# Make-easymap-easy：鑑界點位小幫手
+
+搭配內政部「土地複丈規費(鑑界、分割)服務」網頁（https://easymap.moi.gov.tw/BSWeb/）使用的書籤小工具。
+
+- **自動勾選**：輸入紙本附件上的點號（例：`1,2,5-8`），圖上的界址點自動勾好並重新計算規費，不用在擠成一團的點裡一個個對。
+- **列出鄰地**：依勾選的點，列出碰到的鄰地地號與明細，可複製，供寄發通知使用。
+
+## 怎麼用
+
+打開 `dist/安裝說明.html`，照裡面的步驟把按鈕拖到書籤列即可，之後在查詢結果頁面按一下書籤就會出現面板。
+
+## 鄰地的算法
+
+勾選的點如果同時碰到「申請地號」和「不是申請地號」的土地，那筆不是申請地號的土地就算鄰地。
+申請地號可輸入多筆；夾在兩筆申請地號之間的點不會產生鄰地。
+「碰到」的判定是點到地界線 10 公分以內，超過 2 公分會在結果中提醒目視確認。
+結果以該網頁圖上畫出的地號為準，寄發通知前請再核對。
+
+## 檔案
+
+| 檔案 | 說明 |
+|---|---|
+| `src/easymap-helper.js` | 工具本體（唯一的程式來源） |
+| `tools/build.js` | 產生 `dist/安裝說明.html`、`dist/easymap-helper.js` |
+| `tests/mock.html`、`tests/run.js` | 模擬頁面與自動測試 |
+
+## 開發
+
+```bash
+npm install
+```
+
+```bash
+npm test
+```
+
+測試需要 Playwright；`OL_JS=<路徑>` 可改用原站的 `ol.js`（OpenLayers 3.20.1）測試。
+
+工具依賴原站頁面上的這些名稱，原站改版時要跟著檢查：
+`Cadastral_source`（界址點，點號 `ATTR`）、`map_Cadastral_source`（地籍圖，地號 `ATTR`、查詢地號 `COLOR=='true'`）、
+`send_point`（勾選清單）、`reCalData()`、`CadastralStyleSelectFunction` / `CadastralStyleUNSelectFunction`。
+面板上的「複製檢查資訊」會把這些資料的實際樣子複製出來，工具不正常時請把它貼給維護的人。
+
+HAR 檔與另存的網頁不要放進儲存庫。
