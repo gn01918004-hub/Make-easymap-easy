@@ -103,7 +103,8 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
       return { n: bs.length, hit, text: document.getElementById('emh-print').textContent, lands: [...document.querySelectorAll('#emh-print svg text.emh-ll')].map(e => e.textContent) };
     });
     assert.equal(info.n, 9);  // 點 3、4 在圖框外 assert.deepEqual(info.hit, []);
-    assert.match(info.text, /鑑界界址點及鄰地圖說/); assert.match(info.text, /鄰地清冊/); assert.match(info.text, /點位對照/);
+    assert.match(info.text, /鑑界界址點及鄰地圖說/); assert.match(info.text, /鄰地清冊（共 4 筆）/); assert.doesNotMatch(info.text, /點位對照/);
+    assert.match(info.text, /1\s*11\s*2、5、53/); assert.match(info.text, /4\s*22-1\s*6、55/);
     assert.match(info.text, /圖上沒有這些點號（可能輸錯），未勾選：99/);
     ['10', '11', '20', '21', '22-1'].forEach(l => assert.ok(info.lands.includes(l), l));
     if (process.env.SHOT) { await page.emulateMedia({ media: 'print' }); await page.pdf({ path: process.env.SHOT, format: 'A4' }); await page.emulateMedia({ media: 'screen' }); }

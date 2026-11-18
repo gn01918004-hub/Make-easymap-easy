@@ -11,7 +11,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '1.2';
+  var VERSION = '1.3';
   var PANEL_ID = 'emh-panel';
   var TOL_M = 0.10;   // 點到地界在 10 公分內視為「碰到」
   var WARN_M = 0.02;  // 超過 2 公分就提醒目視確認
@@ -319,8 +319,8 @@
       st = el('style'); st.id = 'emh-print-css';
       st.textContent = '@media print{body>*:not(#emh-print){display:none!important}#emh-print{position:static!important;padding:0!important;min-height:0!important}' +
         '.emh-noprint{display:none!important}}@page{size:A4 portrait;margin:12mm}' +
-        '#emh-print table{border-collapse:collapse;width:100%;margin:4px 0 10px}#emh-print th,#emh-print td{border:1px solid #333;padding:1px 8px;text-align:left;vertical-align:top;font-size:14px;line-height:1.45}' +
-        '#emh-print th{background:#eee;white-space:nowrap}#emh-print h2{font-size:17px;margin:10px 0 2px}#emh-print tr{break-inside:avoid}';
+        '#emh-print table{border-collapse:collapse;width:100%;margin:4px 0 10px}#emh-print th,#emh-print td{border:1px solid #333;padding:3px 10px;text-align:left;vertical-align:top;font-size:19px;line-height:1.45}' +
+        '#emh-print th{background:#eee;white-space:nowrap}#emh-print h2{font-size:20px;margin:10px 0 3px}#emh-print tr{break-inside:avoid}';
       document.head.appendChild(st);
     }
     var checked = {}, nbSet = {}, apps = {};
@@ -346,14 +346,12 @@
     h.push(fig.svg);
     h.push('<div style="font-size:12.5px;margin:3px 0 6px">圖例：<span style="color:#d00">●</span> 鑑界點（粗字）　○ 未選的界址點（灰字）　' +
       '<span style="background:#fff3a0;border:1px solid #000">　</span> 申請地　<span style="background:#eef3fb;border:1px solid #667">　</span> 鄰地　點號以引線拉開，位置以圓點為準。<br>本圖說依內政部土地複丈規費服務網頁之圖資自動產生，僅供核對與通知作業參考，實際位置以現場土地複丈為準。</div>');
-    h.push('<div style="display:flex;gap:14px;align-items:flex-start"><div style="flex:1"><h2>鄰地清冊</h2><table><tr><th>鄰地地號</th><th>碰到的鑑界點</th></tr>');
-    last.r.lands.forEach(function (l) { h.push('<tr><td><b>' + esc(l) + '</b></td><td>' + esc(last.r.byLand[l].slice().sort(numCompare).join('、')) + '</td></tr>'); });
-    if (!last.r.lands.length) h.push('<tr><td colspan="2">（無）</td></tr>');
-    h.push('</table></div><div style="flex:1"><h2>點位對照</h2><table><tr><th>點號</th><th>碰到的鄰地</th></tr>');
-    last.r.perPoint.slice().sort(function (a, b) { return numCompare(a.no, b.no); }).forEach(function (pp) {
-      h.push('<tr><td><b>' + esc(pp.no) + '</b></td><td>' + esc(pp.lands.slice().sort(landCompare).join('、') || '—') + '</td></tr>');
+    h.push('<h2>鄰地清冊（共 ' + last.r.lands.length + ' 筆）</h2><table><tr><th style="width:3.5em;text-align:center">序號</th><th style="width:9em">鄰地地號</th><th>碰到的鑑界點</th></tr>');
+    last.r.lands.forEach(function (l, i) {
+      h.push('<tr><td style="text-align:center">' + (i + 1) + '</td><td><b>' + esc(l) + '</b></td><td>' + esc(last.r.byLand[l].slice().sort(numCompare).join('、')) + '</td></tr>');
     });
-    h.push('</table></div></div>');
+    if (!last.r.lands.length) h.push('<tr><td colspan="3">（無）</td></tr>');
+    h.push('</table>');
     h.push('</div>');
 
     var box = el('div', 'position:absolute;left:0;top:0;width:100%;min-height:100%;box-sizing:border-box;z-index:100000;background:#fff;color:#000;padding:16px;font:15px/1.5 "Microsoft JhengHei",sans-serif;');
@@ -433,7 +431,7 @@
     var bc = el('button', btnCss + 'background:#fff;color:#333;border-color:#999;font-size:13px;', '複製結果');
     bc.id = 'emh-copy'; bc.type = 'button';
     var bp = el('button', btnCss + 'background:#2a5db0;color:#fff;border-color:#2a5db0;font-size:14px;', '列印圖說');
-    bp.id = 'emh-print-btn'; bp.type = 'button'; bp.title = '點號不重疊的圖 ＋ 鄰地清冊，A4 一張';
+    bp.id = 'emh-print-btn'; bp.type = 'button'; bp.title = '點號不重疊的圖 ＋ 鄰地清冊';
     var bd = el('button', btnCss + 'background:#fff;color:#888;border-color:#ccc;font-size:12px;', '複製檢查資訊');
     bd.id = 'emh-diag'; bd.type = 'button'; bd.title = '工具不正常時，把這份資訊貼給維護的人';
     foot.appendChild(bc); foot.appendChild(bp); foot.appendChild(bd);
