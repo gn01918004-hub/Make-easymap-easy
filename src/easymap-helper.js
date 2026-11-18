@@ -11,7 +11,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '1.3';
+  var VERSION = '1.4';
   var PANEL_ID = 'emh-panel';
   var TOL_M = 0.10;   // 點到地界在 10 公分內視為「碰到」
   var WARN_M = 0.02;  // 超過 2 公分就提醒目視確認
@@ -39,6 +39,7 @@
     return String(text || '')
       .replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
       .replace(/[～〜至到]/g, '~')
+      .replace(/[\u2027\u00B7\u30FB\u2022]/g, ' ')
       .split(/[\s,;、，；。.\/]+/)
       .filter(function (t) { return t !== ''; });
   }
@@ -372,80 +373,142 @@
     return e;
   }
 
+  var PANEL_CSS = [
+    '#emh-panel{position:fixed;top:14px;right:14px;z-index:99999;width:360px;max-height:calc(100vh - 28px);display:flex;flex-direction:column;',
+    'background:#fffdfa;border-radius:14px;box-shadow:0 10px 32px rgba(60,30,10,.28),0 0 0 1px rgba(200,90,30,.25);',
+    'font:15px/1.55 "Microsoft JhengHei","微軟正黑體",sans-serif;color:#2b2622;overflow:hidden}',
+    '#emh-panel *{box-sizing:border-box;font-family:inherit}',
+    '#emh-panel .emh-head{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;color:#fff;cursor:move;user-select:none;',
+    'background:linear-gradient(135deg,#d9682a,#b9481a)}',
+    '#emh-panel .emh-title{font-size:17px;font-weight:bold;letter-spacing:1px}',
+    '#emh-panel .emh-ver{font-size:12px;background:rgba(255,255,255,.22);border-radius:10px;padding:0 8px;margin-right:auto}',
+    '#emh-panel .emh-hbtn{width:28px;height:28px;border:0;border-radius:8px;background:rgba(255,255,255,.16);color:#fff;font-size:18px;line-height:28px;cursor:pointer;padding:0}',
+    '#emh-panel .emh-hbtn:hover{background:rgba(255,255,255,.32)}',
+    '#emh-panel .emh-body{padding:12px 14px 14px;overflow:auto}',
+    '#emh-panel.emh-min .emh-body{display:none}',
+    '#emh-panel .emh-info{font-size:13px;color:#6b625b;background:#f4eee8;border-radius:8px;padding:4px 10px;margin-bottom:10px}',
+    '#emh-panel .emh-info.emh-bad{color:#b3261e;background:#fdecea}',
+    '#emh-panel label{display:block;font-weight:bold;margin:2px 0 4px}',
+    '#emh-panel .emh-hint{font-weight:normal;font-size:12px;color:#8a817a;margin-left:4px}',
+    '#emh-panel textarea,#emh-panel input[type=text]{width:100%;padding:7px 10px;border:1.5px solid #d8cfc7;border-radius:9px;background:#fff;',
+    'font-size:17px;color:#222;outline:none;transition:border-color .15s,box-shadow .15s}',
+    '#emh-panel textarea{height:72px;resize:vertical;letter-spacing:.5px}',
+    '#emh-panel textarea:focus,#emh-panel input[type=text]:focus{border-color:#d9682a;box-shadow:0 0 0 3px rgba(217,104,42,.18)}',
+    '#emh-panel .emh-live{min-height:20px;font-size:13px;color:#2e7d32;margin:3px 2px 10px}',
+    '#emh-panel .emh-live b{color:#b3261e}',
+    '#emh-panel button.emh-main{display:block;width:100%;margin-top:12px;padding:9px;border:0;border-radius:10px;cursor:pointer;',
+    'background:#d9682a;color:#fff;font-size:17px;font-weight:bold;box-shadow:0 2px 6px rgba(185,72,26,.35)}',
+    '#emh-panel button.emh-main:hover{background:#c45a20}',
+    '#emh-panel button.emh-link{display:block;margin:6px auto 0;border:0;background:none;color:#b9481a;font-size:14px;cursor:pointer;text-decoration:underline}',
+    '#emh-panel .emh-warn{display:none;margin-top:12px;padding:8px 10px 8px 12px;border-left:5px solid #d32f2f;border-radius:8px;',
+    'background:#fdecea;color:#b3261e;font-weight:bold;font-size:14px;white-space:pre-wrap}',
+    '#emh-panel .emh-out{margin-top:12px;font-size:14px}',
+    '#emh-panel .emh-out:empty{display:none}',
+    '#emh-panel .emh-note{color:#2e7d32;font-weight:bold;margin-bottom:6px}',
+    '#emh-panel .emh-msg{color:#6b625b;background:#f4eee8;border-radius:8px;padding:8px 10px}',
+    '#emh-panel .emh-card{background:#fff;border:1px solid #eadfd5;border-radius:10px;padding:10px 12px}',
+    '#emh-panel .emh-sum{font-size:13px;color:#6b625b;line-height:1.6}',
+    '#emh-panel .emh-big{font-size:16px;font-weight:bold;margin:8px 0 6px}',
+    '#emh-panel .emh-big span{color:#d9682a;font-size:20px}',
+    '#emh-panel .emh-chips{display:flex;flex-wrap:wrap;gap:6px}',
+    '#emh-panel .emh-chip{background:#fff1e6;border:1px solid #f0c7a8;color:#8a3412;border-radius:16px;padding:1px 12px;font-size:17px;font-weight:bold}',
+    '#emh-panel table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}',
+    '#emh-panel th,#emh-panel td{border-top:1px solid #f0e8e1;padding:3px 4px;text-align:left;vertical-align:top}',
+    '#emh-panel th{color:#8a817a;font-weight:normal;font-size:12px;border-top:0}',
+    '#emh-panel td:first-child{font-weight:bold;white-space:nowrap;width:6.5em}',
+    '#emh-panel .emh-foot{display:flex;gap:8px;margin-top:12px}',
+    '#emh-panel .emh-foot button{flex:1;padding:7px 4px;border-radius:9px;cursor:pointer;font-size:15px;font-weight:bold}',
+    '#emh-panel #emh-copy{background:#fff;border:1.5px solid #cbbfb4;color:#4a423c}',
+    '#emh-panel #emh-copy:hover{background:#f7f2ed}',
+    '#emh-panel #emh-print-btn{background:#2f5fa8;border:1.5px solid #2f5fa8;color:#fff}',
+    '#emh-panel #emh-print-btn:hover{background:#264f8d}',
+    '#emh-panel #emh-diag{display:block;margin:10px auto 0;border:0;background:none;color:#a39a92;font-size:12px;cursor:pointer}'
+  ].join('');
+
   function buildPanel() {
     var old = document.getElementById(PANEL_ID);
     if (old) old.remove();
-
-    var box = el('div', 'position:fixed;top:12px;right:12px;z-index:99999;width:340px;max-height:92vh;overflow:auto;' +
-      'background:#fff;border:2px solid #c85a1e;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.35);' +
-      'font:15px/1.5 "Microsoft JhengHei",sans-serif;color:#222;padding:10px 12px;');
-    box.id = PANEL_ID;
-
-    var head = el('div', 'display:flex;align-items:center;margin-bottom:6px;');
-    head.appendChild(el('b', 'font-size:17px;color:#c85a1e;', '鑑界點位小幫手'));
-    var ver = el('span', 'flex:1;margin-left:8px;font-size:13px;color:#888;', 'v' + VERSION);
-    ver.id = 'emh-ver';
-    head.appendChild(ver);
-    var x = el('button', 'border:0;background:none;font-size:20px;cursor:pointer;line-height:1;', '×');
-    x.type = 'button'; x.title = '關閉'; x.onclick = function () { box.remove(); };
-    head.appendChild(x);
-    box.appendChild(head);
-
-    var info = el('div', 'font-size:13px;color:#555;margin-bottom:6px;');
-    box.appendChild(info);
-
-    var btnCss = 'margin:6px 6px 0 0;padding:5px 10px;border:1px solid #c85a1e;border-radius:5px;cursor:pointer;font-size:15px;';
-    var inCss = 'width:100%;box-sizing:border-box;padding:5px;border:1px solid #999;border-radius:4px;font-size:15px;';
-
-    box.appendChild(el('div', 'font-weight:bold;margin-top:4px;', '① 要鑑界的點號'));
-    var ta = el('textarea', inCss + 'height:64px;resize:vertical;');
-    ta.id = 'emh-points'; ta.placeholder = '例：1,2,5-8　（逗號、空白、換行都可以）';
-    box.appendChild(ta);
-
-    box.appendChild(el('div', 'font-weight:bold;margin-top:8px;', '② 申請地號（可多筆）'));
-    var land = el('input', inCss);
-    land.id = 'emh-lands'; land.type = 'text'; land.placeholder = '例：123,123-1';
-    box.appendChild(land);
-
-    var b1 = el('button', btnCss + 'background:#c85a1e;color:#fff;', '勾選並列出鄰地');
-    b1.id = 'emh-apply'; b1.type = 'button';
-    var b2 = el('button', btnCss + 'background:#fff;color:#c85a1e;', '只列鄰地（照目前勾選）');
-    b2.id = 'emh-list'; b2.type = 'button';
-    box.appendChild(b1); box.appendChild(b2);
-
-    var warn = el('div', 'display:none;margin:8px 0 0;padding:6px 8px;background:#ffecec;border:2px solid #c00;border-radius:5px;color:#b00;font-weight:bold;white-space:pre-wrap;');
-    warn.id = 'emh-warn';
-    box.appendChild(warn);
-    var last = null;
-    function showWarn(list) {
-      warn.textContent = list.length ? '※ 請注意\n' + list.join('\n') : '';
-      warn.style.display = list.length ? 'block' : 'none';
+    if (!document.getElementById('emh-panel-css')) {
+      var st = el('style'); st.id = 'emh-panel-css'; st.textContent = PANEL_CSS;
+      document.head.appendChild(st);
     }
 
-    var out = el('pre', 'margin:8px 0 0;padding:8px;background:#f6f3ee;border-radius:5px;white-space:pre-wrap;' +
-      'word-break:break-all;font:14px/1.6 "Microsoft JhengHei",sans-serif;min-height:40px;');
-    out.id = 'emh-out';
-    box.appendChild(out);
+    var box = el('div'); box.id = PANEL_ID;
+    var head = el('div'); head.className = 'emh-head';
+    head.appendChild(el('span', 'font-size:18px', '📍'));
+    var tt = el('span', null, '鑑界點位小幫手'); tt.className = 'emh-title'; head.appendChild(tt);
+    var ver = el('span', null, 'v' + VERSION); ver.id = 'emh-ver'; ver.className = 'emh-ver'; head.appendChild(ver);
+    var mn = el('button', null, '−'); mn.type = 'button'; mn.className = 'emh-hbtn'; mn.id = 'emh-min'; mn.title = '縮小／展開';
+    var x = el('button', null, '×'); x.type = 'button'; x.className = 'emh-hbtn'; x.title = '關閉';
+    head.appendChild(mn); head.appendChild(x);
+    box.appendChild(head);
+    mn.onclick = function () { var m = box.classList.toggle('emh-min'); mn.textContent = m ? '+' : '−'; };
+    x.onclick = function () { box.remove(); };
 
-    var foot = el('div', 'margin-top:4px;');
-    var bc = el('button', btnCss + 'background:#fff;color:#333;border-color:#999;font-size:13px;', '複製結果');
-    bc.id = 'emh-copy'; bc.type = 'button';
-    var bp = el('button', btnCss + 'background:#2a5db0;color:#fff;border-color:#2a5db0;font-size:14px;', '列印圖說');
-    bp.id = 'emh-print-btn'; bp.type = 'button'; bp.title = '點號不重疊的圖 ＋ 鄰地清冊';
-    var bd = el('button', btnCss + 'background:#fff;color:#888;border-color:#ccc;font-size:12px;', '複製檢查資訊');
-    bd.id = 'emh-diag'; bd.type = 'button'; bd.title = '工具不正常時，把這份資訊貼給維護的人';
-    foot.appendChild(bc); foot.appendChild(bp); foot.appendChild(bd);
-    box.appendChild(foot);
+    // 拖曳標題列可以移動面板，避免擋到地圖
+    head.addEventListener('mousedown', function (ev) {
+      if (ev.target.tagName === 'BUTTON') return;
+      var r = box.getBoundingClientRect(), dx = ev.clientX - r.left, dy = ev.clientY - r.top;
+      function mv(e) {
+        box.style.left = Math.max(0, Math.min(window.innerWidth - 80, e.clientX - dx)) + 'px';
+        box.style.top = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - dy)) + 'px';
+        box.style.right = 'auto';
+      }
+      function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
+      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+      ev.preventDefault();
+    });
+
+    var body = el('div'); body.className = 'emh-body'; box.appendChild(body);
+    var info = el('div'); info.className = 'emh-info'; body.appendChild(info);
+
+    var l1 = el('label', null, '① 鑑界點號');
+    var h1 = el('span', null, '用逗號、空白、句點分開；5-8 代表 5 到 8'); h1.className = 'emh-hint'; l1.appendChild(h1);
+    body.appendChild(l1);
+    var ta = el('textarea'); ta.id = 'emh-points'; ta.placeholder = '例：3411 3412.3413,5-8'; ta.spellcheck = false;
+    body.appendChild(ta);
+    var live = el('div'); live.className = 'emh-live'; live.id = 'emh-live'; body.appendChild(live);
+
+    var l2 = el('label', null, '② 申請地號');
+    var h2 = el('span', null, '多筆用逗號或空白分開'); h2.className = 'emh-hint'; l2.appendChild(h2);
+    body.appendChild(l2);
+    var land = el('input'); land.id = 'emh-lands'; land.type = 'text'; land.placeholder = '例：123,123-1'; land.spellcheck = false;
+    body.appendChild(land);
+
+    var b1 = el('button', null, '✔ 勾選並列出鄰地'); b1.id = 'emh-apply'; b1.type = 'button'; b1.className = 'emh-main';
+    var b2 = el('button', null, '只列鄰地（照目前圖上的勾選）'); b2.id = 'emh-list'; b2.type = 'button'; b2.className = 'emh-link';
+    body.appendChild(b1); body.appendChild(b2);
+
+    var warn = el('div'); warn.id = 'emh-warn'; warn.className = 'emh-warn'; body.appendChild(warn);
+    var out = el('div'); out.id = 'emh-out'; out.className = 'emh-out'; body.appendChild(out);
+
+    var foot = el('div'); foot.className = 'emh-foot';
+    var bc = el('button', null, '📋 複製結果'); bc.id = 'emh-copy'; bc.type = 'button';
+    var bp = el('button', null, '🖨 列印圖說'); bp.id = 'emh-print-btn'; bp.type = 'button'; bp.title = '點號不重疊的圖 ＋ 鄰地清冊';
+    foot.appendChild(bc); foot.appendChild(bp); body.appendChild(foot);
+    var bd = el('button', null, '工具不正常時：複製檢查資訊'); bd.id = 'emh-diag'; bd.type = 'button';
+    body.appendChild(bd);
     document.body.appendChild(box);
+
+    var last = null, plain = '';
+    function showWarn(list) {
+      warn.textContent = list.length ? '⚠ 請注意\n' + list.join('\n') : '';
+      warn.style.display = list.length ? 'block' : 'none';
+    }
+    function showMsg(text) {
+      plain = text; out.setAttribute('data-text', text); out.innerHTML = '';
+      var m = el('div', null, text); m.className = 'emh-msg'; out.appendChild(m);
+    }
+    function htmlEsc(t) { return esc(t); }
 
     function refreshInfo() {
       var pg = page();
       if (!pg.ok) {
         info.textContent = '還沒有圖資：請先選好地段、輸入地號，按「鑑界複丈規費試算」，圖出來後再按一次按鈕。';
-        info.style.color = '#b00';
+        info.className = 'emh-info emh-bad';
         return pg;
       }
-      info.style.color = '#555';
+      info.className = 'emh-info';
       var n = Object.keys(currentChecked()).length;
       info.textContent = '本頁共 ' + pg.points.length + ' 個界址點，目前勾選 ' + n + ' 個。';
       if (!land.value) {
@@ -455,13 +518,25 @@
       return pg;
     }
 
+    // 邊打字邊檢查點號，打錯的先標紅
+    function updateLive() {
+      var pg = page();
+      if (!pg.ok || !ta.value.trim()) { live.innerHTML = ''; return; }
+      var known = {};
+      pg.points.forEach(function (p) { known[p.key] = 1; });
+      var r = parsePoints(ta.value, known);
+      live.innerHTML = '將勾選 ' + r.list.length + ' 點' +
+        (r.missing.length ? '　<b>圖上沒有：' + htmlEsc(r.missing.join('、')) + '</b>' : '');
+    }
+    ta.addEventListener('input', updateLive);
+
     function listNeighbors(pg, note, missing) {
       last = null;
-      var lines = note ? [note, ''] : [], warns = [];
+      var warns = [], pre = note ? note + '\n\n' : '';
       if (missing && missing.length) warns.push('圖上沒有這些點號（可能輸錯），未勾選：' + missing.join('、'));
       var apps = {}, typed = tokens(land.value);
       typed.forEach(function (t) { apps[normLand(t)] = 1; });
-      if (!typed.length) { showWarn(warns); out.textContent = lines.concat(['請先填「申請地號」。']).join('\n'); return; }
+      if (!typed.length) { showWarn(warns); showMsg(pre + '請先填「申請地號」。'); return; }
       var have = {};
       pg.parcels.forEach(function (p) { have[normLand(p.no)] = 1; });
       var notOnMap = typed.filter(function (t) { return !have[normLand(t)]; });
@@ -469,13 +544,17 @@
 
       var checked = currentChecked();
       var pts = pg.points.filter(function (p) { return checked[p.key]; });
-      if (!pts.length) { showWarn(warns); out.textContent = lines.concat(['目前沒有勾選任何點。']).join('\n'); return; }
+      if (!pts.length) { showWarn(warns); showMsg(pre + '目前沒有勾選任何點。'); return; }
 
       var r = findNeighbors(pts, pg.parcels, apps);
       if (r.lonely.length) warns.push('這些點沒有碰到任何申請地號，未列入：' + r.lonely.join('、'));
       r.loose.forEach(function (w) { warns.push('點 ' + w.point + ' 與地號 ' + w.land + ' 相距約 ' + w.cm + ' 公分，請目視確認'); });
+      var ptsTxt = pts.map(function (p) { return p.no; }).join('、');
+
+      var lines = [];
+      if (note) lines.push(note, '');
       lines.push('申請地號：' + typed.join('、'));
-      lines.push('勾選點號（' + pts.length + ' 點）：' + pts.map(function (p) { return p.no; }).join('、'));
+      lines.push('勾選點號（' + pts.length + ' 點）：' + ptsTxt);
       lines.push('');
       lines.push('鄰地共 ' + r.lands.length + ' 筆：' + (r.lands.length ? r.lands.join('、') : '（無）'));
       if (r.lands.length) {
@@ -483,21 +562,38 @@
         lines.push('明細（鄰地：碰到的點）');
         r.lands.forEach(function (l) { lines.push('  ' + l + '：' + r.byLand[l].join('、')); });
       }
+      plain = lines.join('\n');
+      out.setAttribute('data-text', plain);
+
+      var h = [];
+      if (note) h.push('<div class="emh-note">✔ ' + htmlEsc(note) + '</div>');
+      h.push('<div class="emh-card"><div class="emh-sum">申請地號：' + htmlEsc(typed.join('、')) +
+        '<br>勾選點號（' + pts.length + ' 點）：' + htmlEsc(ptsTxt) + '</div>');
+      h.push('<div class="emh-big">鄰地共 <span>' + r.lands.length + '</span> 筆</div>');
+      if (r.lands.length) {
+        h.push('<div class="emh-chips">' + r.lands.map(function (l) { return '<span class="emh-chip">' + htmlEsc(l) + '</span>'; }).join('') + '</div>');
+        h.push('<table><tr><th>鄰地地號</th><th>碰到的鑑界點</th></tr>' + r.lands.map(function (l) {
+          return '<tr><td>' + htmlEsc(l) + '</td><td>' + htmlEsc(r.byLand[l].join('、')) + '</td></tr>';
+        }).join('') + '</table>');
+      } else {
+        h.push('<div class="emh-sum">（勾選的點沒有碰到其他土地）</div>');
+      }
+      h.push('</div>');
+      out.innerHTML = h.join('');
       showWarn(warns);
-      out.textContent = lines.join('\n');
       last = { pg: pg, typed: typed, pts: pts, r: r, warns: warns };
     }
 
     b1.onclick = function () {
       var pg = refreshInfo();
-      if (!pg.ok) { out.textContent = info.textContent; return; }
+      if (!pg.ok) { showWarn([]); showMsg(info.textContent); return; }
       var known = {};
       pg.points.forEach(function (p) { known[p.key] = 1; });
       var r = parsePoints(ta.value, known);
       if (!r.list.length) {
         last = null;
         showWarn(r.missing.length ? ['圖上沒有這些點號（可能輸錯）：' + r.missing.join('、')] : []);
-        out.textContent = r.missing.length ? '沒有可勾選的點號，圖上的勾選沒有變動。' : '請先輸入點號。';
+        showMsg(r.missing.length ? '沒有可勾選的點號，圖上的勾選沒有變動。' : '請先輸入點號。');
         return;
       }
       var n = applyChecked(pg, r.list);
@@ -507,12 +603,12 @@
 
     b2.onclick = function () {
       var pg = refreshInfo();
-      if (!pg.ok) { out.textContent = info.textContent; return; }
+      if (!pg.ok) { showWarn([]); showMsg(info.textContent); return; }
       listNeighbors(pg, '', null);
     };
 
     function copy(text, btn) {
-      var done = function () { var t = btn.textContent; btn.textContent = '已複製'; setTimeout(function () { btn.textContent = t; }, 1200); };
+      var done = function () { var t = btn.textContent; btn.textContent = '✔ 已複製'; setTimeout(function () { btn.textContent = t; }, 1200); };
       var fallback = function () {
         var t = el('textarea', 'position:fixed;left:-9999px;'); t.value = text;
         document.body.appendChild(t); t.select();
@@ -522,10 +618,10 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
       else fallback();
     }
-    bc.onclick = function () { copy((warn.textContent ? warn.textContent + '\n\n' : '') + out.textContent, bc); };
+    bc.onclick = function () { copy((warn.textContent ? warn.textContent + '\n\n' : '') + plain, bc); };
     bp.onclick = function () {
       var pg = refreshInfo();
-      if (!pg.ok) { out.textContent = info.textContent; return; }
+      if (!pg.ok) { showWarn([]); showMsg(info.textContent); return; }
       if (!last) listNeighbors(pg, '', null);
       if (last) showPrint(last);
     };

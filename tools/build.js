@@ -23,14 +23,15 @@ button{font-size:16px;padding:4px 12px}
 <ol>
 <li>按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 讓 Chrome 上方出現「書籤列」。</li>
 <li>用滑鼠把下面這顆橘色按鈕<b>拖到書籤列</b>上放開：<br>
-<a class="bm" id="bm" href="${esc(href)}">鑑界小幫手</a></li>
+<a class="bm" id="bm" href="${esc(href)}">📍鑑界小幫手</a></li>
+<li>已經裝過舊版的話，先在書籤列的舊書籤上按右鍵「刪除」，再拖一次新的。書籤名稱前面的 📍 就是它的圖示，方便在書籤列上找到。</li>
 </ol>
 
 <h2>使用</h2>
 <ol>
 <li>開啟 <a href="https://easymap.moi.gov.tw/BSWeb/" target="_blank">https://easymap.moi.gov.tw/BSWeb/</a>，選地段、輸入地號，按「鑑界複丈規費試算」，等地籍圖出來。</li>
-<li>按書籤列上的「鑑界小幫手」，右上角會出現小面板。</li>
-<li>在 ① 輸入紙本附件上的點號（例：<code>1,2,5-8</code>），② 確認申請地號（會自動帶入查詢的地號，多筆用逗號分開）。</li>
+<li>按書籤列上的「📍鑑界小幫手」，右上角會出現小面板。</li>
+<li>在 ① 輸入紙本附件上的點號（例：<code>3411 3412.3413,5-8</code>，可用逗號、空白、句點或換行分開；<code>5-8</code> 代表 5 到 8），② 確認申請地號（會自動帶入查詢的地號，多筆用逗號分開）。</li>
 <li>按「勾選並列出鄰地」：圖上的點會勾好、規費重新計算，面板下方列出鄰地。</li>
 <li>若是自己在圖上手動勾選，按「只列鄰地（照目前勾選）」即可。</li>
 <li>「複製結果」可貼到 Word、Excel 或通知書清冊。</li>

@@ -11,6 +11,12 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
     assert.equal(h.norm(' ００7 '), '7'); assert.equal(h.norm('a12'), 'A12');
     assert.equal(h.normLand('0012-0000'), '12'); assert.equal(h.normLand('12-3'), '12-3'); assert.equal(h.normLand('0012-0003'), '12-3');
   });
+  await ok('句點、空白、中文間隔號都能分隔點號', () => {
+    const known = {}; ['3411','3412','3413','5','6','7'].forEach(k => known[k] = 1);
+    assert.deepEqual(h.parsePoints('3411.3412 3413', known).list, ['3411','3412','3413']);
+    assert.deepEqual(h.parsePoints('3411．3412‧3413·5・6', known).list, ['3411','3412','3413','5','6']);
+    assert.deepEqual(h.parsePoints('5-7.3411', known).list, ['5','6','7','3411']);
+  });
   await ok('點號展開與找不到的點', () => {
     const known = {}; ['1','2','3','5','6','7','8','A1'].forEach(k => known[k] = 1);
     const r = h.parsePoints('1、2 ,5-7\n a1 9 3~4', known);
@@ -29,7 +35,7 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
   await page.goto('file://' + path.join(tmp, 'mock.html'));
   const src = fs.readFileSync(path.join(root, 'src/easymap-helper.js'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'dist/安裝說明.html'), 'utf8');
-  const out = async () => (await page.textContent('#emh-warn')) + '\n' + (await page.textContent('#emh-out'));
+  const out = async () => (await page.textContent('#emh-warn')) + '\n' + (await page.getAttribute('#emh-out', 'data-text'));
 
   await ok('安裝頁的書籤內容可執行、面板出現、自動帶入申請地號', async () => {
     const href = /id="bm" href="([^"]+)"/.exec(html)[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&quot;/g, '"');
@@ -46,6 +52,7 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
     assert.deepEqual(st.sp, ['1','2','5','6']); assert.equal(st.recalc, 1);
     assert.equal(st.styleLog['1'], 'on'); assert.equal(st.styleLog['3'], 'off');
     assert.match(await page.textContent('#emh-warn'), /圖上沒有這些點號（可能輸錯），未勾選：99/);
+    assert.equal(await page.locator('#emh-out .emh-chip').count(), 4);
     assert.ok(await page.isVisible('#emh-warn'));
   });
   await ok('單筆申請地號的鄰地（含邊中間碰到的 21）', async () => {
@@ -110,6 +117,21 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
     if (process.env.SHOT) { await page.emulateMedia({ media: 'print' }); await page.pdf({ path: process.env.SHOT, format: 'A4' }); await page.emulateMedia({ media: 'screen' }); }
     await page.click('#emh-closeprint');
     assert.equal(await page.locator('#emh-print').count(), 0);
+  });
+  await ok('打字時就提示將勾選幾點、哪些點號圖上沒有', async () => {
+    await page.fill('#emh-points', '1.2 5 77');
+    assert.match(await page.textContent('#emh-live'), /將勾選 3 點\s*圖上沒有：77/);
+    await page.fill('#emh-points', '');
+    assert.equal(await page.textContent('#emh-live'), '');
+  });
+  await ok('縮小／展開面板', async () => {
+    await page.click('#emh-min');
+    assert.ok(!(await page.isVisible('#emh-points')));
+    await page.click('#emh-min');
+    assert.ok(await page.isVisible('#emh-points'));
+  });
+  await ok('安裝頁書籤名稱有圖示', () => {
+    assert.match(html, /id="bm" href="[^"]+">📍鑑界小幫手<\/a>/);
   });
   await ok('重按書籤不會出現兩個面板；還沒查詢時有提示', async () => {
     await page.evaluate(src);
