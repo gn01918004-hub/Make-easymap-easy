@@ -11,7 +11,7 @@
  */
 (function () {
   'use strict';
-  var VERSION = '1.4';
+  var VERSION = '1.5';
   var PANEL_ID = 'emh-panel';
   var TOL_M = 0.10;   // 點到地界在 10 公分內視為「碰到」
   var WARN_M = 0.02;  // 超過 2 公分就提醒目視確認
@@ -501,20 +501,34 @@
     }
     function htmlEsc(t) { return esc(t); }
 
+    // 查詢的地號（圖上塗黃的那幾筆）；換案子時這組地號會跟著變
+    var caseSig = null;
+    function mineOf(pg) {
+      var mine = pg.parcels.filter(function (p) { return p.mine; }).map(function (p) { return p.no; });
+      return mine.filter(function (v, i) { return mine.indexOf(v) === i; });
+    }
+
     function refreshInfo() {
       var pg = page();
       if (!pg.ok) {
-        info.textContent = '還沒有圖資：請先選好地段、輸入地號，按「鑑界複丈規費試算」，圖出來後再按一次按鈕。';
+        info.textContent = '還沒有圖資：請先選好地段、輸入地號，按「鑑界複丈規費試算」，圖出來後這裡會自動更新。';
         info.className = 'emh-info emh-bad';
         return pg;
       }
       info.className = 'emh-info';
       var n = Object.keys(currentChecked()).length;
       info.textContent = '本頁共 ' + pg.points.length + ' 個界址點，目前勾選 ' + n + ' 個。';
-      if (!land.value) {
-        var mine = pg.parcels.filter(function (p) { return p.mine; }).map(function (p) { return p.no; });
-        land.value = mine.filter(function (v, i) { return mine.indexOf(v) === i; }).join(',');
+      var mine = mineOf(pg), sig = mine.slice().sort().join(',') + '|' + pg.parcels.map(function (p) { return p.no; }).sort().join(',');
+      if (caseSig === null) {
+        if (!land.value) land.value = mine.join(',');
+      } else if (sig !== caseSig) {
+        // 換了一件案子：申請地號換成新的，上一件的點號與結果清掉
+        land.value = mine.join(',');
+        ta.value = ''; live.innerHTML = '';
+        last = null; showWarn([]);
+        showMsg('已換成新的案子，申請地號自動更新為：' + (mine.join('、') || '（無）') + '。請輸入這件的點號。');
       }
+      caseSig = sig;
       return pg;
     }
 
@@ -629,6 +643,11 @@
 
     refreshInfo();
     ta.focus();
+    // 每秒看一次頁面，換案子、手動勾選時面板自動更新；面板關掉就停止
+    var timer = setInterval(function () {
+      if (!document.body.contains(box)) { clearInterval(timer); return; }
+      refreshInfo();
+    }, 1000);
   }
 
   function diagnose() {

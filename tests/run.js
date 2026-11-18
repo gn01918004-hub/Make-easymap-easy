@@ -133,6 +133,29 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
   await ok('安裝頁書籤名稱有圖示', () => {
     assert.match(html, /id="bm" href="[^"]+">📍鑑界小幫手<\/a>/);
   });
+  await ok('同一件案子：手動改的申請地號不會被蓋掉', async () => {
+    await page.fill('#emh-lands', '10,11');
+    await page.waitForTimeout(1300);
+    assert.equal(await page.inputValue('#emh-lands'), '10,11');
+  });
+  await ok('換案子時自動更新申請地號、清掉上一件的點號與結果', async () => {
+    await page.fill('#emh-lands', '10');
+    await page.fill('#emh-points', '1,2');
+    await page.click('#emh-apply');
+    await page.evaluate(() => {   // 模擬在原網頁查了另一件（兩筆申請地號）
+      map_Cadastral_source.clear(); Cadastral_source.clear(); send_point = [];
+      map_Cadastral_source.addFeatures([poly('333', true, [[0,0],[10,0],[10,10],[0,10]]), poly('334', true, [[10,0],[20,0],[20,10],[10,10]]),
+        poly('335', false, [[0,10],[20,10],[20,20],[0,20]])]);
+      Cadastral_source.addFeatures([pt('1460',0,10), pt('1461',10,10), pt('1462',20,10)]);
+    });
+    await page.waitForFunction(() => document.getElementById('emh-lands').value === '333,334', null, { timeout: 3000 });
+    assert.equal(await page.inputValue('#emh-points'), '');
+    assert.match(await page.textContent('#emh-out'), /已換成新的案子，申請地號自動更新為：333、334/);
+    assert.match(await page.textContent('.emh-info'), /本頁共 3 個界址點，目前勾選 0 個/);
+    await page.fill('#emh-points', '1460.1461 1462');
+    await page.click('#emh-apply');
+    assert.match(await out(), /鄰地共 1 筆：335/);
+  });
   await ok('重按書籤不會出現兩個面板；還沒查詢時有提示', async () => {
     await page.evaluate(src);
     assert.equal(await page.locator('#emh-panel').count(), 1);
