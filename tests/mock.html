@@ -23,6 +23,20 @@ map_Cadastral_source.addFeatures([
   poly('30', false, [[40,40],[50,40],[50,50],[40,50]])
 ]);
 Cadastral_source.addFeatures([pt('1',0,0), pt('2',10,0), pt('3',20,0), pt('4',20,10), pt('5',10,10), pt('6',0,10)]);
+// 載入一件案子（座標是公尺，換成地圖用的 Web Mercator）
+function loadCase(c) {
+  var k = 1 / Math.cos(24.6 * Math.PI / 180);
+  function M(xy) { return P(xy[0] * k, xy[1] * k); }
+  map_Cadastral_source.clear(); Cadastral_source.clear(); send_point = [];
+  c.parcels.forEach(function (pc) {
+    var f = new ol.Feature(new ol.geom.Polygon([pc.ring.map(M)])); f.set('ATTR', pc.no); f.set('COLOR', pc.mine ? 'true' : 'false');
+    map_Cadastral_source.addFeature(f);
+  });
+  c.points.forEach(function (q) {
+    var f = new ol.Feature(new ol.geom.Point(M([q.x, q.y]))); f.set('ATTR', q.no); f.set('TYPE', 'Point');
+    Cadastral_source.addFeature(f);
+  });
+}
 var send_point = [];
 var styleLog = {};
 function CadastralStyleSelectFunction(f) { styleLog[f.get('ATTR')] = 'on'; return new ol.style.Style({}); }

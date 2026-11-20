@@ -156,6 +156,39 @@ const ok = (name, fn) => Promise.resolve().then(fn).then(() => { n++; console.lo
     await page.click('#emh-apply');
     assert.match(await out(), /鄰地共 1 筆：335/);
   });
+  await ok('點很多的案子（39 點、7 筆申請地）：點號排在四周，不重疊、不壓點、引線不交叉，清冊印在第 2 頁', async () => {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/dense.json'), 'utf8'));
+    await page.evaluate(d => loadCase(d), data);
+    await page.waitForFunction(n => document.getElementById('emh-lands').value.split(',').length === n, data.parcels.filter(x => x.mine).length, { timeout: 3000 });
+    await page.fill('#emh-points', data.points.filter(x => x.sel).map(x => x.no).join(' '));
+    await page.click('#emh-apply');
+    assert.match(await out(), /鄰地共 12 筆/);
+    await page.click('#emh-print-btn');
+    const m = await page.evaluate(() => {
+      const f = window.__easymapHelperFig;
+      const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+      const o = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+      const seg = (a, b, c, d) => o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+      let lab = 0, dot = 0, cross = 0, out = 0;
+      f.labels.forEach((a, i) => {
+        f.labels.forEach((b, j) => { if (i < j && hit(a, b)) lab++; });
+        f.dots.forEach(d => { if (hit(a, { x: d[0] - 6, y: d[1] - 6, w: 12, h: 12 })) dot++; });
+        if (a.x < 0 || a.y < 0 || a.x + a.w > f.W || a.y + a.h > f.H) out++;
+      });
+      f.leaders.forEach((a, i) => f.leaders.forEach((b, j) => { if (i < j && seg(a[0], a[1], b[0], b[1])) cross++; }));
+      const pl = [...document.querySelectorAll('#emh-print svg text.emh-pl')].length;
+      const ll = [...document.querySelectorAll('#emh-print svg text.emh-ll')].map(e => e.textContent);
+      const h2 = [...document.querySelectorAll('#emh-print h2')].find(e => /鄰地清冊/.test(e.textContent));
+      return { dense: f.dense, n: f.labels.length, pl, lab, dot, cross, out, ll, brk: h2.style.breakBefore };
+    });
+    assert.ok(m.dense);
+    assert.equal(m.n, 39); assert.equal(m.pl, 39);   // 只標鑑界點，沒選的點不標號
+    assert.deepEqual([m.lab, m.dot, m.cross, m.out], [0, 0, 0, 0]);
+    data.parcels.forEach(x => assert.ok(m.ll.includes(x.no), x.no));
+    assert.equal(m.brk, 'page');
+    if (process.env.SHOT_DENSE) { await page.emulateMedia({ media: 'print' }); await page.pdf({ path: process.env.SHOT_DENSE, format: 'A4' }); await page.emulateMedia({ media: 'screen' }); }
+    await page.click('#emh-closeprint');
+  });
   await ok('重按書籤不會出現兩個面板；還沒查詢時有提示', async () => {
     await page.evaluate(src);
     assert.equal(await page.locator('#emh-panel').count(), 1);

@@ -3,7 +3,11 @@ const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const src = fs.readFileSync(path.join(root, 'src/easymap-helper.js'), 'utf8');
 const version = /var VERSION = '([^']+)'/.exec(src)[1];
-const href = 'javascript:' + encodeURIComponent(src) + ';void 0';
+// 書籤版拿掉註解與縮排，網址短一點（原始碼不變）
+const slim = src
+  .replace(/^\s*\/\*[\s\S]*?\*\/\s*$/gm, '')
+  .split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//')).join('\n');
+const href = 'javascript:' + encodeURIComponent(slim) + ';void 0';
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const html = `<!DOCTYPE html>
 <html lang="zh-Hant-TW"><head><meta charset="utf-8">
@@ -36,7 +40,7 @@ button{font-size:16px;padding:4px 12px}
 <li>查下一件案子不用關掉面板：原網頁查詢完、圖出來後，面板會自動換成新的申請地號，並清掉上一件的點號。</li>
 <li>若是自己在圖上手動勾選，按「只列鄰地（照目前勾選）」即可。</li>
 <li>「複製結果」可貼到 Word、Excel 或通知書清冊。</li>
-<li>「列印圖說」會產生 A4 一張：點號用引線拉開不重疊的圖，加上大字的鄰地清冊；按上方「列印」印出，「關閉」回到原頁面。</li>
+<li>「列印圖說」會產生 A4 一張：點號用引線拉開不重疊的圖，加上大字的鄰地清冊（鑑界點超過 12 個時，點號會整齊排在圖的四周，清冊改印在第 2 頁）；按上方「列印」印出，「關閉」回到原頁面。</li>
 <li>輸入了圖上沒有的點號（可能輸錯）時，面板會出現紅框提醒，那些點號不會被勾選。</li>
 </ol>
 <p class="note">鄰地的算法：勾選的點如果同時碰到「申請地號」和「不是申請地號」的土地，那筆不是申請地號的土地就算鄰地。<br>
